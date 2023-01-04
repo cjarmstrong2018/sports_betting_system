@@ -1,0 +1,122 @@
+[
+    {
+        "abbreviation": "ATL",
+        "teamName": "Atlanta Hawks",
+    },
+    {
+        "abbreviation": "BOS",
+        "teamName": "Boston Celtics",
+    },
+    {
+        "abbreviation": "BKN",
+        "teamName": "Brooklyn Nets",
+    },
+    {
+        "abbreviation": "CHA",
+        "teamName": "Charlotte Hornets",
+    },
+    {
+        "abbreviation": "CHI",
+        "teamName": "Chicago Bulls",
+    },
+    {
+        "abbreviation": "CLE",
+        "teamName": "Cleveland Cavaliers",
+    },
+    {
+        "abbreviation": "DAL",
+        "teamName": "Dallas Mavericks",
+    },
+    {
+        "abbreviation": "DEN",
+        "teamName": "Denver Nuggets",
+    },
+    {
+        "abbreviation": "DET",
+        "teamName": "Detroit Pistons",
+    },
+    {
+        "abbreviation": "GSW",
+        "teamName": "Golden State Warriors"
+    },
+    {
+        "abbreviation": "HOU",
+        "teamName": "Houston Rockets",
+    },
+    {
+        "abbreviation": "IND",
+        "teamName": "Indiana Pacers",
+    },
+    {
+        "abbreviation": "LAC",
+        "teamName": "Los Angeles Clippers"
+    },
+    {
+        "abbreviation": "LAL",
+        "teamName": "Los Angeles Lakers",
+    },
+    {
+        "abbreviation": "MEM",
+        "teamName": "Memphis Grizzlies",
+    },
+    {
+        "abbreviation": "MIA",
+        "teamName": "Miami Heat",
+    },
+    {
+        "abbreviation": "MIL",
+        "teamName": "Milwaukee Bucks",
+    },
+    {
+        "abbreviation": "MIN",
+        "teamName": "Minnesota Timberwolves",
+    },
+    {
+        "abbreviation": "NOP",
+        "teamName": "New Orleans Pelicans"
+    },
+    {
+        "abbreviation": "NYK",
+        "teamName": "New York Knicks",
+    },
+    {
+        "abbreviation": "OKC",
+        "teamName": "Oklahoma City Thunder"
+    },
+    {
+        "abbreviation": "ORL",
+        "teamName": "Orlando Magic"
+    },
+    {
+        "abbreviation": "PHI",
+        "teamName": "Philadelphia 76ers"
+    },
+    {
+        "abbreviation": "PHX",
+        "teamName": "Phoenix Suns"
+    },
+    {
+        "abbreviation": "POR",
+        "teamName": "Portland Trail Blazers",
+    },
+    {
+        "abbreviation": "SAC",
+        "teamName": "Sacramento Kings"
+    },
+    {
+        "abbreviation": "SAS",
+        "teamName": "San Antonio Spurs"
+    },
+    {
+        "abbreviation": "TOR",
+        "teamName": "Toronto Raptors",
+    },
+    {
+        "abbreviation": "UTA",
+        "teamName": "Utah Jazz",
+    },
+    {
+        "abbreviation": "WAS",
+        "teamName": "Washington Wizards"
+    }
+]
