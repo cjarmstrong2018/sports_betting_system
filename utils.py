@@ -15,6 +15,7 @@ from fuzzywuzzy import process
 import pandas as pd
 import numpy as np
 from utils import *
+import sys
 import json
 import http.client
 import re
@@ -443,9 +444,12 @@ def get_odds_portal_driver(odds_type="AVERAGE"):
     op.add_argument("--disable-web-security")
     op.add_argument("--disable-blink-features=AutomationControlled")
     op.add_argument("--log-level=3")
-
-    web = webdriver.Chrome(
-        "C:\\Users\\chris\\OneDrive\\Projects\\odds_portal_scraper\\chromedriver", options=op)
+    if sys.platform == "linux":
+        web = webdriver.Chrome(
+            '/usr/lib/chromium-browser/chromedriver', options=op)
+    else:
+        web = webdriver.Chrome(
+            "C:\\Users\\chris\\OneDrive\\Projects\\odds_portal_scraper\\chromedriver", options=op)
 
     web.get("https://www.oddsportal.com/login/")
 

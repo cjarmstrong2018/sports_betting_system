@@ -9,6 +9,10 @@ from pybettor import convert_odds
 from utils import *
 import requests
 import pickle
+from pyvirtualdisplay import Display
+if sys.platform == "linux":
+    display = Display(visible=0, size=(800, 600))
+    display.start()
 
 REGIONS = 'us'  # uk | us | eu | au. Multiple can be specified if comma delimited
 MARKETS = 'h2h'  # h2h | spreads | totals. Multiple can be specified if comma delimited
