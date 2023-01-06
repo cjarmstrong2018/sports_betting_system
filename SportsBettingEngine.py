@@ -24,12 +24,23 @@ SUPPORTED_BOOKS = ['DraftKings', 'FanDuel', 'Barstool Sportsbook',
 
 SPORTS = {
     "NBA": "basketball_nba",
-    # "NFL": "TBD",
+    "NFL": "americanfootball_nfl",
     # "MLB": "TBD",
-    # "NHL": "TBD",
-    # "NCAAB": "TBD",
-    # "NCAAF": "TBD",
+    "NHL": "icehockey_nhl",
+    "NCAAB": "basketball_ncaab",
+    "NCAAF": "americanfootball_ncaaf",
 }
+
+"""
+To-do:
+    - include Soccer
+    - finish Kelly Testing
+    - add processing of in-season sports
+    - only return game within 1 hour of starting
+    - Update errors
+    - save trades in a df
+    - don't send duplicate texts for games
+"""
 
 
 class BettingEngine(object):
