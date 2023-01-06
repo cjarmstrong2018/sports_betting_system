@@ -4,12 +4,7 @@ import json
 import requests
 import pytz
 from datetime import datetime, timezone
-from pyvirtualdisplay import Display
-import sys
 
-if sys.platform == "linux":
-    display = Display(visible=0, size=(800, 600))
-    display.start()
 
 
 class OddsPortal(object):
