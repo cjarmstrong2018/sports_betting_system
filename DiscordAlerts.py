@@ -10,6 +10,7 @@ class DiscordAlert(object):
     def __init__(self) -> None:
         self.errors_url = os.getenv('SYSTEM_ERRORS')
         self.notification_url = os.getenv("TRADES_WEBHOOK")
+        self.cja_url = os.getenv('CJA_TRADES_WEBHOOK')
 
     def send_msg(self, msg):
         """
@@ -35,4 +36,15 @@ class DiscordAlert(object):
             level (str): level indicating the danger of the Error
         """
         return f"ERROR LEVEL: {level} \n\n {msg} \n Please check systems as soon" + \
-            "as possible!"
+            " as possible!"
+
+    def send_msg_cja(self, msg):
+        """
+        Method to send a message to my discord bot
+        Args:
+            msg (str):message to send to discord channel 
+        Returns:
+            nothing, posts message to channel
+        """
+        data = {'content': msg}
+        r = requests.post(url=self.cja_url, json=data)

@@ -6,7 +6,6 @@ import pytz
 from datetime import datetime, timezone
 
 
-
 class OddsPortal(object):
     """
     Object to gather average odds from oddsportal.com for all upcoming matches
@@ -20,7 +19,8 @@ class OddsPortal(object):
             "MLB": "https://www.oddsportal.com/baseball/usa/mlb/",
             "NBA": "https://www.oddsportal.com/basketball/usa/nba/",
             "NCAAB": "https://www.oddsportal.com/basketball/usa/ncaa/",
-            "NCAAF": "https://www.oddsportal.com/american-football/usa/ncaa/"
+            "NCAAF": "https://www.oddsportal.com/american-football/usa/ncaa/",
+            "NHL": "https://www.oddsportal.com/hockey/usa/nhl/"
         }
 
     def get_odds(self, league) -> pd.DataFrame:

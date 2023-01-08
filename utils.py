@@ -495,4 +495,4 @@ def basic_kelly_criterion(prob, odds, kelly_size=1):
     """
     b = odds - 1
     q = 1 - prob
-    return ((b * q - prob) / b) * kelly_size
+    return ((b * prob - q) / b) * kelly_size

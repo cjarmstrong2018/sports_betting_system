@@ -10,6 +10,7 @@ from utils import *
 import requests
 import pickle
 from pyvirtualdisplay import Display
+import traceback
 if sys.platform == "linux":
     display = Display(visible=0, size=(800, 600))
     display.start()
@@ -34,11 +35,10 @@ SPORTS = {
 """
 To-do:
     - include Soccer
-    - finish Kelly Testing
+    - handle multiple different API_KEYS for OddsAPI
     - add processing of in-season sports
     - only return game within 1 hour of starting
     - Update errors
-    - save trades in a df
     - don't send duplicate texts for games
 """
 
@@ -56,6 +56,8 @@ class BettingEngine(object):
         """
         Constructor for the BettingEngine object
         """
+        self.trades_path = "trades.csv"
+        self.initial_bankroll = 500
         self.discord = DiscordAlert()
         try:
             self.odds_portal = OddsPortal()
@@ -67,9 +69,10 @@ class BettingEngine(object):
         try:
             self.model = pickle.load(open('model.pkl', 'rb'))
         except Exception as e:
-            self.discord.send_error("Error Loading Model: " + str(e))
+            self.discord.send_error(
+                "Error Loading Model: " + str(traceback.format_exc()))
 
-    def get_current_best_odds(self, sport):
+    def get_current_best_odds(self, sport) -> pd.DataFrame:
         """
         Loads current odds for individual books and returns a DataFrame
         of the decimal odds for each event
@@ -113,7 +116,7 @@ class BettingEngine(object):
         df = df.iloc[highest_odds_idx]
         return df
 
-    def get_current_mean_odds(self, sport):
+    def get_current_mean_odds(self, sport) -> pd.DataFrame:
         """
         Scrapes OddsPortal for upcoming games for a given league and returns a DataFrame
         ready for merging with the current best odds
@@ -182,14 +185,11 @@ class BettingEngine(object):
             pd.DataFrame: a DataFrame ready to be iterated over to send alerts to
             the channel
         """
+        df = df[df['date'] < datetime.now() + pd.Timedelta(5, 'h')]
         df['mean_implied_probability'] = 1 / df['mean_odds']
         df['highest_implied_probability'] = 1 / df['odds']
-        df['thresh'] = 1 / (df['mean_implied_probability'] - self.alpha)
+        df['thresh'] = 1 / (df['mean_implied_probability'] - self._alpha)
         df = df[df['odds'] >= df['thresh']]
-        if df.empty():
-            self.discord.send_error(
-                "Not an error, everything is working as planned, no trades though")
-            return df
         return df
 
     def necessary_calculations(self, df) -> pd.DataFrame:
@@ -217,6 +217,9 @@ class BettingEngine(object):
         df['half_kelly'] = df.apply(lambda x: basic_kelly_criterion(
             x['predicted_prob'], x['odds'], kelly_size=0.5), axis=1)
 
+        df['id'] = df.apply(lambda x: self.generate_game_id(x), axis=1)
+        current_bankroll = self.current_bankroll()
+        df['cja_wager'] = df['half_kelly'] * current_bankroll
         return df
 
     def create_and_send_notification(self, df) -> str:
@@ -235,12 +238,12 @@ class BettingEngine(object):
             return
         intro_msg = ":rotating_light::rotating_light: Potential Bets Found! :rotating_light::rotating_light:\n"
         self.discord.send_msg(intro_msg)
-        for i, row in df.head().iloc[:2, :].iterrows():
-            date = row['date'].strftime("%m/%d %I:%M")
+        for i, row in df.iterrows():
+            date = row['date'].strftime("%m/%d %I:%M %p")
             msg = f"{date} {row['away_team']} @ {row['home_team']}\n"
             msg += f"Bet on {row['odds_team']} Moneyline with {row['bookmaker']}\n"
-            msg += f"Current Odds: {row['odds']}.\n"
-            msg += f"We Reccommend this wager as long as odds are greater than {round(row['thresh'], 2)}\n"
+            msg += f"Current Odds: {row['odds']} ({row['american_odds_best']}).\n"
+            msg += f"The bet is good if the odds are at least {round(row['thresh'], 2)} ({row['american_thresh']})\n"
             msg += "Using Kelly Criterion, we reccommend betting the following percentages of your betting bankroll: \n"
             msg += f"Full Kelly: {round(row['kelly'] * 100)}%\n"
             msg += f"Half Kelly: {round(row['half_kelly'] * 100)}%\n"
@@ -248,6 +251,85 @@ class BettingEngine(object):
             self.discord.send_msg(msg)
 
         self.discord.send_msg("Good Luck!!")
+
+    def create_and_send_notification_cja(self, df) -> str:
+        """
+        sends message specific to CJA for bet placement
+
+        Args:
+            df (pd.DataFrame): DataFrame of trades that have all the necessary
+            calculations completed already
+
+        Returns:
+            str: The output string to send to the discord
+        """
+        if df.empty:
+            return
+        current_bankroll = self.current_bankroll()
+        intro_msg = ":rotating_light::rotating_light: Potential Bets Found! :rotating_light::rotating_light:\n"
+        intro_msg += f"You current bankroll is {current_bankroll}.\n"
+        self.discord.send_msg_cja(intro_msg)
+        for i, row in df.iterrows():
+            date = row['date'].strftime("%m/%d %I:%M %p")
+            msg = f"{date} {row['away_team']}@{row['home_team']}\n"
+            msg += f"ID: {row['id']} \n"
+            msg += f"Bet on {row['odds_team']} Moneyline with {row['bookmaker']}\n"
+            msg += f"Current Odds: {row['odds']} {row['american_odds_best']}.\n"
+            msg += f"Lowest Profitable Odds: {round(row['thresh'], 2)} {round(row['american_thresh'], 2)}\n"
+            msg += f"Half Kelly wager size: ${round(row['cja_wager'], 2)} \n"
+            msg += "\n\n"
+            self.discord.send_msg_cja(msg)
+
+        self.discord.send_msg_cja("Good Luck!!")
+
+    def current_bankroll(self) -> float:
+        if not os.path.exists(self.trades_path):
+            return self.initial_bankroll
+        else:
+            trades = pd.read_csv(self.trades_path)
+            trades = trades[trades['cja_placed'] == 1]
+            trades = trades.dropna()
+            bankroll = self.initial_bankroll
+            for i, row in trades.iterrows():
+                bankroll += (row['cja_wager'] * row['bet_wins']
+                             * row['odds']) - row['cja_wager']
+            return bankroll
+
+    def generate_game_id(self, row) -> str:
+        """
+        When provided with a row in the df pertaining to a given game, returns a 
+        game code unique to that game
+
+        Args:
+            row (pd.Series) a row pertaining to a certain game
+        Return: a string identifier unique to the game 
+        """
+        home_first_initial = row['home_team'][0].lower()
+        away_first_initial = row['away_team'][0].lower()
+        line_first_initial = row['odds_team'][0].lower()
+        month = str(row['date'].month)
+        day = str(row['date'].day)
+        hour = str(row['date'].hour)
+        minute = str(row['date'].minute)
+        return home_first_initial + month + day + hour + minute + away_first_initial + line_first_initial
+
+    def save_spotted_trades(self, df) -> None:
+        """
+        Saves trades that have been spotted by the Engine into a .csv file
+
+        Args:
+            df (pd.DataFrame): DataFrame of observed trades
+        """
+
+        df = df.set_index("id")
+        df['bet_wins'] = np.nan
+        df['cja_placed_bet'] = np.nan
+        if not os.path.exists(self.trades_path):
+            df.to_csv(self.trades_path)
+        else:
+            trades = pd.read_csv(self.trades_path, index_col="id")
+            df = pd.concat([trades, df])
+            df.to_csv(self.trades_path)
 
     def run_engine(self) -> None:
         """
@@ -257,27 +339,37 @@ class BettingEngine(object):
         Discord notifying users of the opportunities
         """
         all_trades = []
+        num_lines_scraped = 0
+        error_occured = False
         for sport, name in SPORTS.items():
             try:
                 league_df = self.create_league_df(sport)
+                num_lines_scraped += len(league_df)
             except Exception as e:
-                e = str(e)
-                self.discord.construct_error_msg(
-                    f"Error creating {sport} df \n" + e, "CRITICAL")
+                error = "Error creating {sport} df\n" + \
+                    str(traceback.format_exc())
+                self.discord.send_error(error)
                 continue
             try:
                 trades_df = self.find_trades(league_df)
             except Exception as e:
                 e = str(e)
-                self.discord.construct_error_msg(
+                error_msg = self.discord.construct_error_msg(
                     f"Error finding trades for {sport} \n" + e, "CRITICAL")
+                self.discord.send_error(error_msg)
+
                 continue
             if not trades_df.empty:
                 all_trades.append(trades_df)
 
+        print(len(all_trades), error_occured)
         if all_trades:
             df = pd.concat(all_trades)
             df = self.necessary_calculations(df)
             self.create_and_send_notification(df)
-        else:
-            self.discord.send_error("No Errors: engine ran smoothly")
+            self.create_and_send_notification_cja(df)
+            self.save_spotted_trades(df)
+        if not error_occured:
+            self.discord.send_error(
+                f"Engine completed, analyzed odds for {num_lines_scraped} games")
+        self.odds_portal.web.close()
