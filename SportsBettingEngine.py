@@ -38,7 +38,9 @@ To-do:
     - handle multiple different API_KEYS for OddsAPI
     - add processing of in-season sports
     - only return game within 1 hour of starting
-    - Update errors
+    - get up and running on RaspberryPI
+    - Add functionality to parse my responses to bets
+    - determine when to run the bot
     - don't send duplicate texts for games
 """
 
