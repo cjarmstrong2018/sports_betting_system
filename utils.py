@@ -456,7 +456,7 @@ def get_odds_portal_driver(odds_type="AVERAGE"):
     login_xpath = '//*[@id="col-content"]/div[3]/div/form/div[3]/button/span/span'
     login_click_xpath = '//*[@id="col-content"]/div[3]/div/form/div[3]/button'
     WebDriverWait(web, 10).until(
-        EC.presence_of_element_located((By.XPATH, login_xpath)))
+        EC.element_to_be_clickable((By.NAME, "login-submit")))
     user = web.find_element(By.NAME, "login-username")
     user.send_keys("cjarmstrong2018")
     pswd = web.find_element(By.NAME, "login-password")
