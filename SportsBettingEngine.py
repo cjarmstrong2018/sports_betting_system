@@ -36,8 +36,6 @@ SPORTS = {
 """
 To-do:
     - include Soccer
-    - handle multiple different API_KEYS for OddsAPI
-    - add processing of in-season sports
     - only return game within 1 hour of starting
     - get up and running on RaspberryPI
     - Add functionality to parse my responses to bets
@@ -68,7 +66,6 @@ class BettingEngine(object):
         except Exception as e:
             self.discord.send_error(
                 "Error instantiating OddsPortal instance: " + str(e))
-        self.odds_api_key = os.getenv("CJA_API_KEY2")
         self._alpha = 0.05
         try:
             self.model = pickle.load(open('model.pkl', 'rb'))
