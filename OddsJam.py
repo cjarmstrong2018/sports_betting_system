@@ -7,7 +7,7 @@ from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
 from datetime import datetime
 from pybettor import convert_odds
-
+import sys
 
 class OddsJam(object):
     """
@@ -35,8 +35,11 @@ class OddsJam(object):
         op.add_argument("--disable-web-security")
         op.add_argument("--disable-blink-features=AutomationControlled")
         op.add_argument("--log-level=3")
-        self.web = webdriver.Chrome(
-            "C:\\Users\\chris\\OneDrive\\Projects\\odds_portal_scraper\\chromedriver", options=op)
+        if sys.platform == "linux":
+            chromedriver_path = '/usr/lib/chromium-browser/chromedriver' 
+        else:
+            chromedriver_path = "C:\\Users\\chris\\OneDrive\\Projects\\odds_portal_scraper\\chromedriver"
+        self.web = webdriver.Chrome(chromedriver_path, options=op)
 
     def get_lines(self, league) -> pd.DataFrame:
         """
@@ -68,7 +71,7 @@ class OddsJam(object):
             extensions.extend(ext)
         dfs = []
         for ext in extensions:
-            url2 = "https://oddsjam.com/" + ext
+            url2 = "https://oddsjam.com" + ext
             self.web.get(url2)
             xpath = "//*[@id='__next']/div/main/div[2]/div[4]/div/div[1]/div[1]/div"
             try:
