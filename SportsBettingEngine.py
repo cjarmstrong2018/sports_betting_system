@@ -12,6 +12,7 @@ import requests
 import pickle
 from pyvirtualdisplay import Display
 import traceback
+
 if sys.platform == "linux":
     display = Display(visible=0, size=(800, 600))
     display.start()
@@ -66,12 +67,14 @@ class BettingEngine(object):
         except Exception as e:
             self.discord.send_error(
                 "Error instantiating OddsPortal instance: " + str(e))
+            raise
         self._alpha = 0.05
         try:
             self.model = pickle.load(open('model.pkl', 'rb'))
         except Exception as e:
             self.discord.send_error(
                 "Error Loading Model: " + str(traceback.format_exc()))
+            raise
 
     def get_current_best_odds(self, sport) -> pd.DataFrame:
         """
