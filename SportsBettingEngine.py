@@ -81,39 +81,10 @@ class BettingEngine(object):
         Loads current odds for individual books and returns a DataFrame
         of the decimal odds for each event
 
-        sport (str): the odds_api name for the sport of interest
+        sport (str): the league of interest
 
         Return: DataFrame of the best odds and the respective bookie
         """
-        # odds_response = requests.get(
-        #     f'https://api.the-odds-api.com/v4/sports/{sport}/odds',
-        #     params={
-        #         'api_key': self.odds_api_key,
-        #         'regions': REGIONS,
-        #         'markets': MARKETS,
-        #         'oddsFormat': ODDS_FORMAT,
-        #         'dateFormat': DATE_FORMAT,
-        #     }
-        # )
-        # if odds_response.status_code != 200:
-        #     error_msg = self.discord.construct_error_msg(odds_response.status_code,
-        #                                                  "CRITICAL")
-        #     self.discord.send_error(error_msg)
-        #     return None
-        # odds_response = json.loads(odds_response.text)
-        # df = pd.json_normalize(odds_response,
-        #                        record_path=['bookmakers',
-        #                                     'markets', 'outcomes'],
-        #                        meta=['sport_title', 'commence_time', 'home_team',
-        #                              'away_team', ['bookmaker', 'title']], errors='ignore')
-        # df = df[['commence_time', 'sport_title', 'home_team',
-        #          'away_team', 'bookmaker.title', 'name', 'price']]
-        # df = df.rename(columns={'commence_time': "date",
-        #                         "sport_title": "sport",
-        #                         "bookmaker.title": "bookmaker",
-        #                         "name": "odds_team",
-        #                         "price": "odds"})
-        # df = df[df['bookmaker'].isin(SUPPORTED_BOOKS)]
         df = self.oddsjam.get_lines(sport)
         df = df.reset_index(drop=True)
         highest_odds_idx = df.groupby(['home_team', 'away_team', "odds_team"])[
