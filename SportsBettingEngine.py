@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from OddsPortal import OddsPortal
 from DiscordAlerts import DiscordAlert
+from OddsJam import OddsJam
 import fuzzy_pandas as fpd
 import os
 from dotenv import load_dotenv
@@ -61,12 +62,13 @@ class BettingEngine(object):
         self.trades_path = "trades.csv"
         self.initial_bankroll = 500
         self.discord = DiscordAlert()
+        self.oddsjam = OddsJam()
         try:
             self.odds_portal = OddsPortal()
         except Exception as e:
             self.discord.send_error(
                 "Error instantiating OddsPortal instance: " + str(e))
-        # self.odds_api_key = os.getenv("API_KEY")
+        self.odds_api_key = os.getenv("CJA_API_KEY2")
         self._alpha = 0.05
         try:
             self.model = pickle.load(open('model.pkl', 'rb'))
@@ -83,37 +85,38 @@ class BettingEngine(object):
 
         Return: DataFrame of the best odds and the respective bookie
         """
-        odds_response = requests.get(
-            f'https://api.the-odds-api.com/v4/sports/{sport}/odds',
-            params={
-                'api_key': self.odds_api_key,
-                'regions': REGIONS,
-                'markets': MARKETS,
-                'oddsFormat': ODDS_FORMAT,
-                'dateFormat': DATE_FORMAT,
-            }
-        )
-        if odds_response.status_code != 200:
-            error_msg = self.discord.construct_error_msg(odds_response.status_code,
-                                                         "CRITICAL")
-            self.discord.send_error(error_msg)
-            return None
-        odds_response = json.loads(odds_response.text)
-        df = pd.json_normalize(odds_response,
-                               record_path=['bookmakers',
-                                            'markets', 'outcomes'],
-                               meta=['sport_title', 'commence_time', 'home_team',
-                                     'away_team', ['bookmaker', 'title']], errors='ignore')
-        df = df[['commence_time', 'sport_title', 'home_team',
-                 'away_team', 'bookmaker.title', 'name', 'price']]
-        df = df.rename(columns={'commence_time': "date",
-                                "sport_title": "sport",
-                                "bookmaker.title": "bookmaker",
-                                "name": "odds_team",
-                                "price": "odds"})
-        df = df[df['bookmaker'].isin(SUPPORTED_BOOKS)]
+        # odds_response = requests.get(
+        #     f'https://api.the-odds-api.com/v4/sports/{sport}/odds',
+        #     params={
+        #         'api_key': self.odds_api_key,
+        #         'regions': REGIONS,
+        #         'markets': MARKETS,
+        #         'oddsFormat': ODDS_FORMAT,
+        #         'dateFormat': DATE_FORMAT,
+        #     }
+        # )
+        # if odds_response.status_code != 200:
+        #     error_msg = self.discord.construct_error_msg(odds_response.status_code,
+        #                                                  "CRITICAL")
+        #     self.discord.send_error(error_msg)
+        #     return None
+        # odds_response = json.loads(odds_response.text)
+        # df = pd.json_normalize(odds_response,
+        #                        record_path=['bookmakers',
+        #                                     'markets', 'outcomes'],
+        #                        meta=['sport_title', 'commence_time', 'home_team',
+        #                              'away_team', ['bookmaker', 'title']], errors='ignore')
+        # df = df[['commence_time', 'sport_title', 'home_team',
+        #          'away_team', 'bookmaker.title', 'name', 'price']]
+        # df = df.rename(columns={'commence_time': "date",
+        #                         "sport_title": "sport",
+        #                         "bookmaker.title": "bookmaker",
+        #                         "name": "odds_team",
+        #                         "price": "odds"})
+        # df = df[df['bookmaker'].isin(SUPPORTED_BOOKS)]
+        df = self.oddsjam.get_lines(sport)
         df = df.reset_index(drop=True)
-        highest_odds_idx = df.groupby(['sport', 'home_team', 'away_team', "odds_team"])[
+        highest_odds_idx = df.groupby(['home_team', 'away_team', "odds_team"])[
             'odds'].idxmax()
         df = df.iloc[highest_odds_idx]
         return df
@@ -160,7 +163,7 @@ class BettingEngine(object):
             error_msg = self.discord.construct_error_msg(
                 error_msg, "Low Priority")
             self.discord.send_error(error_msg)
-        best_odds = self.get_current_best_odds(sport_title)
+        best_odds = self.get_current_best_odds(league)
         if best_odds is None:
             return None
         mean_odds = self.get_current_mean_odds(league)
@@ -363,8 +366,6 @@ class BettingEngine(object):
                 continue
             if not trades_df.empty:
                 all_trades.append(trades_df)
-
-        print(len(all_trades), error_occured)
         if all_trades:
             df = pd.concat(all_trades)
             df = self.necessary_calculations(df)
@@ -375,3 +376,4 @@ class BettingEngine(object):
             self.discord.send_error(
                 f"Engine completed, analyzed odds for {num_lines_scraped} games")
         self.odds_portal.web.close()
+        self.oddsjam.web.close()
