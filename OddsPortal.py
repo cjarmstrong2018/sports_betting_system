@@ -107,3 +107,9 @@ class OddsPortal(object):
             "num_bookies": num_bookies
         }
         return entry
+
+    def exit(self):
+        """
+        Cleanup function to close anything running in the object
+        """
+        self.web.quit()

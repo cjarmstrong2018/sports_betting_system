@@ -9,6 +9,7 @@ from datetime import datetime
 from pybettor import convert_odds
 import sys
 
+
 class OddsJam(object):
     """
     Object to gather average odds from oddsjam.com for all upcoming matches
@@ -36,7 +37,7 @@ class OddsJam(object):
         op.add_argument("--disable-blink-features=AutomationControlled")
         op.add_argument("--log-level=3")
         if sys.platform == "linux":
-            chromedriver_path = '/usr/lib/chromium-browser/chromedriver' 
+            chromedriver_path = '/usr/lib/chromium-browser/chromedriver'
         else:
             chromedriver_path = "C:\\Users\\chris\\OneDrive\\Projects\\odds_portal_scraper\\chromedriver"
         self.web = webdriver.Chrome(chromedriver_path, options=op)
@@ -115,3 +116,9 @@ class OddsJam(object):
         all_lines['odds'] = all_lines['odds'].apply(
             lambda x: convert_odds(x, cat_in="us")['Decimal'])
         return all_lines
+
+    def exit(self):
+        """
+        Closes the chromedriver instance associated with the OddsJam object
+        """
+        self.web.quit()

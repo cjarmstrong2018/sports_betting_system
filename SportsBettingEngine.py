@@ -346,5 +346,5 @@ class BettingEngine(object):
         if not error_occured:
             self.discord.send_error(
                 f"Engine completed, analyzed odds for {num_lines_scraped} games")
-        self.odds_portal.web.close()
-        self.oddsjam.web.close()
+        self.odds_portal.exit()
+        self.oddsjam.exit()
