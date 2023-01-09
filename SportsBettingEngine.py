@@ -67,14 +67,14 @@ class BettingEngine(object):
         except Exception as e:
             self.discord.send_error(
                 "Error instantiating OddsPortal instance: " + str(e))
-            raise
+            raise e
         self._alpha = 0.05
         try:
             self.model = pickle.load(open('model.pkl', 'rb'))
         except Exception as e:
             self.discord.send_error(
                 "Error Loading Model: " + str(traceback.format_exc()))
-            raise
+            raise e
 
     def get_current_best_odds(self, sport) -> pd.DataFrame:
         """
