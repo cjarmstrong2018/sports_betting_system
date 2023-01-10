@@ -35,7 +35,7 @@ SPORTS = {
     "EPL": "English Premier League",
     "LaLiga": "La Liga",
     "SerieA": "Serie A",
-    "Champions_League": ""
+    "Champions_League": "Champions league"
 }
 
 """
@@ -43,7 +43,6 @@ To-do:
     - only return game within 1 hour of starting
     - Add functionality to parse my responses to bets
     - determine when to run the bot
-    - don't send duplicate texts for games
 """
 
 
@@ -341,22 +340,26 @@ class BettingEngine(object):
         cleans the data, finds any relevant trades, and sends a notification on 
         Discord notifying users of the opportunities
         """
+        self.discord.send_error("Searching for Odds...")
         all_trades = []
         num_lines_scraped = 0
         error_occured = False
         for sport, name in SPORTS.items():
+            print(f"Scraping odds for {sport}")
             try:
                 league_df = self.create_league_df(sport)
                 if league_df.empty:
                     print(f"No lines available for {sport}")
                     continue
                 num_lines_scraped += len(league_df)
+
             except Exception as e:
                 error = f"Error creating {sport} df\n" + \
                     str(traceback.format_exc())
                 self.discord.send_error(error)
                 continue
             try:
+                print(f"Gathered lines for {sport}looking for trades")
                 trades_df = self.find_trades(league_df)
             except Exception as e:
                 e = str(e)
@@ -368,6 +371,7 @@ class BettingEngine(object):
             if not trades_df.empty:
                 all_trades.append(trades_df)
         if all_trades:
+            print("Trades spotted! Sending all info")
             df = pd.concat(all_trades)
             df = self.necessary_calculations(df)
             df = self.remove_already_spotted_trades(df)
