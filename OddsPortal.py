@@ -3,7 +3,7 @@ import pandas as pd
 import json
 import requests
 import pytz
-from datetime import datetime, timezone
+from datetime import datetime, timedelta
 
 
 class OddsPortal(object):
@@ -20,7 +20,8 @@ class OddsPortal(object):
             "NBA": "https://www.oddsportal.com/basketball/usa/nba/",
             "NCAAB": "https://www.oddsportal.com/basketball/usa/ncaa/",
             "NCAAF": "https://www.oddsportal.com/american-football/usa/ncaa/",
-            "NHL": "https://www.oddsportal.com/hockey/usa/nhl/"
+            "NHL": "https://www.oddsportal.com/hockey/usa/nhl/",
+            "EPL": "https://www.oddsportal.com/soccer/england/premier-league/"
         }
 
     def get_odds(self, league) -> pd.DataFrame:
@@ -37,21 +38,75 @@ class OddsPortal(object):
         assert league in self.paths.keys()
 
         url = self.paths.get(league)
-        soup = get_page_source(url, self.web)
+        self.web.get(url)
+        table_xpath = '/html/body/div[1]/div/div[1]/div/main/div[2]/div[7]'
+        WebDriverWait(self.web, 10).until(
+            EC.element_to_be_clickable((By.XPATH, table_xpath)))
+
+        soup = BeautifulSoup(self.web.page_source, 'html.parser')
         table = soup.find(
-            "table", attrs={"id": "tournamentTable"}).find("tbody")
-        games = table.find_all("tr", attrs={"xeid": True})
-        game_entries = []
-        for game in games:
-            if game.find("span", attrs={'class': "live-odds-ico-prev"}) is not None:
-                continue
+            "div", attrs={"class": "flex flex-col px-3 text-sm max-mm:px-0"})
+        games = []
+        current_date = None
+        for child in table.children:
             try:
-                entry = self.parse_upcoming_game_tag(game)
-                game_entries.append(entry)
-            except Exception as e:
-                print("Error parsing entry!")
-        df = pd.DataFrame(game_entries)
-        return df
+                date_tag = child.find("div", attrs={
+                                      "class": "w-full text-xs font-normal leading-5 text-black-main font-main"})
+            except TypeError:
+                break
+            if date_tag is not None:
+                text = date_tag.text
+                text = text.split('-')[0].strip()
+                if "Today" in text:
+                    text += (" " + str(datetime.today().year))
+                    current_date = datetime.strptime(text, "Today, %d %b %Y")
+                elif "Tomorrow" in text:
+                    text += (" " + str(datetime.today().year))
+                    current_date = datetime.strptime(
+                        text, "Tomorrow, %d %b %Y")
+                else:
+                    current_date = datetime.strptime(text.strip(), "%d %b %Y")
+            game = child.find(
+                "div", class_="flex hover:bg-[#f9e9cc] group border-l border-r border-black-borders")
+            if game is None:
+                break
+            teams = game.find_all('img')
+            home_team, away_team = [x['alt'] for x in teams]
+            time = game.find('p', class_="whitespace-nowrap").text
+            if ":" not in time:
+                continue
+            hours, mins = time.split(":")
+            date = current_date + \
+                timedelta(hours=int(hours), minutes=int(mins))
+            if date < datetime.now():
+                print("game already started!")
+                continue
+            odds = game.find_all('p', class_="height-content")
+            if len(odds) == 2:
+                home_odds, away_odds = [x.text for x in odds]
+                draw_odds = np.nan
+            else:
+                home_odds, draw_odds, away_odds = [x.text for x in odds]
+            if home_odds == '-' or away_odds == '-':
+                continue
+            home_odds = float(home_odds)
+            away_odds = float(away_odds)
+            if draw_odds:
+                draw_odds = float(draw_odds)
+            num_bookies = game.find(
+                'div', class_="height-content text-[10px] leading-5 text-black-main").text
+            num_bookies = int(num_bookies)
+            game_entry = {
+                "date": date,
+                "home_team": home_team,
+                'away_team': away_team,
+                "home_odds": home_odds,
+                "draw_odds": draw_odds,
+                "away_odds": away_odds,
+                "num_bookies": num_bookies
+            }
+            games.append(game_entry)
+        return pd.DataFrame(games)
 
     def get_all_odds(self):
         """
