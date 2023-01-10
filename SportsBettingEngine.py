@@ -26,22 +26,21 @@ SUPPORTED_BOOKS = ['DraftKings', 'FanDuel', 'Barstool Sportsbook',
                    'BetRivers', 'BetMGM', 'PointsBet (US)', 'William Hill (US)']
 
 SPORTS = {
-    # "NBA": "basketball_nba",
-    # "NFL": "americanfootball_nfl",
-    # "MLB": "TBD",
-    # "NHL": "icehockey_nhl",
-    # "NCAAB": "basketball_ncaab",
-    # "NCAAF": "americanfootball_ncaaf",
+    "NBA": "basketball_nba",
+    "NFL": "americanfootball_nfl",
+    "MLB": "TBD",
+    "NHL": "icehockey_nhl",
+    "NCAAB": "basketball_ncaab",
+    "NCAAF": "americanfootball_ncaaf",
     "EPL": "English Premier League",
     "LaLiga": "La Liga",
-    "SerieA": "Serie A"
+    "SerieA": "Serie A",
+    "Champions_League": ""
 }
 
 """
 To-do:
-    - include Soccer
     - only return game within 1 hour of starting
-    - get up and running on RaspberryPI
     - Add functionality to parse my responses to bets
     - determine when to run the bot
     - don't send duplicate texts for games
@@ -320,6 +319,21 @@ class BettingEngine(object):
             df = pd.concat([trades, df])
             df.to_csv(self.trades_path)
 
+    def remove_already_spotted_trades(self, df):
+        """
+        Temporary! Removes trades that have already been notified on the discord
+
+        Args:
+            df (pd.DataFrame): DataFrame of all trades that have been spotted
+
+        Returns: filtered dataframe
+        """
+        if not os.path.exists(self.trades_path):
+            return df
+        else:
+            trades = pd.read_csv(self.trades_path, index_col='id')
+            return df[~df['id'].isin(trades.index)]
+
     def run_engine(self) -> None:
         """
         Driving method for the scraping and notification engine
@@ -340,7 +354,6 @@ class BettingEngine(object):
             except Exception as e:
                 error = f"Error creating {sport} df\n" + \
                     str(traceback.format_exc())
-                print(error)
                 self.discord.send_error(error)
                 continue
             try:
@@ -357,11 +370,11 @@ class BettingEngine(object):
         if all_trades:
             df = pd.concat(all_trades)
             df = self.necessary_calculations(df)
+            df = self.remove_already_spotted_trades(df)
             self.create_and_send_notification(df)
             self.create_and_send_notification_cja(df)
             self.save_spotted_trades(df)
-        if not error_occured:
-            self.discord.send_error(
-                f"Engine completed, analyzed odds for {num_lines_scraped} games")
+        self.discord.send_error(
+            f"Engine completed, analyzed odds for {num_lines_scraped} games")
         self.odds_portal.exit()
         self.oddsjam.exit()
