@@ -21,7 +21,10 @@ class OddsPortal(object):
             "NCAAB": "https://www.oddsportal.com/basketball/usa/ncaa/",
             "NCAAF": "https://www.oddsportal.com/american-football/usa/ncaa/",
             "NHL": "https://www.oddsportal.com/hockey/usa/nhl/",
-            "EPL": "https://www.oddsportal.com/soccer/england/premier-league/"
+            "EPL": "https://www.oddsportal.com/soccer/england/premier-league/",
+            "LaLiga": "https://www.oddsportal.com/soccer/spain/laliga/",
+            "SerieA": "https://www.oddsportal.com/soccer/italy/serie-a/",
+
         }
 
     def get_odds(self, league) -> pd.DataFrame:
