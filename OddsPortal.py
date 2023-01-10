@@ -24,6 +24,7 @@ class OddsPortal(object):
             "EPL": "https://www.oddsportal.com/soccer/england/premier-league/",
             "LaLiga": "https://www.oddsportal.com/soccer/spain/laliga/",
             "SerieA": "https://www.oddsportal.com/soccer/italy/serie-a/",
+            "Champions_League": "https://www.oddsportal.com/soccer/europe/champions-league/"
 
         }
 

@@ -23,7 +23,7 @@ class OddsJam(object):
             "MLB": "https://oddsjam.com/mlb/odds",
             "NFL": "https://oddsjam.com/nfl/odds",
             "EPL": "https://oddsjam.com/soccer/league/england-premier-league",
-            "UEFA": 'https://oddsjam.com/soccer/league/uefa-champions-league',
+            "Champions_League": 'https://oddsjam.com/soccer/league/uefa-champions-league',
             "SerieA": "https://oddsjam.com/soccer/league/italy-serie-a",
             "LaLiga": "https://oddsjam.com/soccer/league/spain-la-liga",
             "NHL": "https://oddsjam.com/nhl/odds",
