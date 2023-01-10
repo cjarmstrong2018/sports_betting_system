@@ -26,12 +26,13 @@ SUPPORTED_BOOKS = ['DraftKings', 'FanDuel', 'Barstool Sportsbook',
                    'BetRivers', 'BetMGM', 'PointsBet (US)', 'William Hill (US)']
 
 SPORTS = {
-    "NBA": "basketball_nba",
-    "NFL": "americanfootball_nfl",
+    # "NBA": "basketball_nba",
+    # "NFL": "americanfootball_nfl",
     # "MLB": "TBD",
-    "NHL": "icehockey_nhl",
-    "NCAAB": "basketball_ncaab",
-    "NCAAF": "americanfootball_ncaaf",
+    # "NHL": "icehockey_nhl",
+    # "NCAAB": "basketball_ncaab",
+    # "NCAAF": "americanfootball_ncaaf",
+    "EPL": "English Premier League"
 }
 
 """
@@ -86,6 +87,8 @@ class BettingEngine(object):
         Return: DataFrame of the best odds and the respective bookie
         """
         df = self.oddsjam.get_lines(sport)
+        if df.empty:
+            return pd.DataFrame()
         df = df.reset_index(drop=True)
         highest_odds_idx = df.groupby(['home_team', 'away_team', "odds_team"])[
             'odds'].idxmax()
@@ -103,9 +106,11 @@ class BettingEngine(object):
         Returns: DataFrame ready to merge with the current best odds
         """
         op_df = self.odds_portal.get_odds(sport)
+        if op_df.empty:
+            return pd.DataFrame()
         op_df = op_df.reset_index()
         pivoted = op_df.set_index(['date', "home_team", "away_team"])[
-            ['home_odds', 'away_odds']].stack()
+            ['home_odds', 'draw_odds', 'away_odds']].stack()
         pivoted = pd.DataFrame(pivoted, columns=['highest_odds'])
         pivoted = pivoted.reset_index()
         pivoted.columns = ['date', 'home_team',
@@ -114,6 +119,8 @@ class BettingEngine(object):
             pivoted['odds_type'] == 'home_odds', pivoted['home_team'], np.nan)
         pivoted['odds_team'] = np.where(
             pivoted['odds_type'] == 'away_odds', pivoted['away_team'], pivoted['odds_team'])
+        pivoted['odds_team'] = np.where(
+            pivoted['odds_type'] == 'draw_odds', "draw", pivoted['odds_team'])
 
         return pivoted
 
@@ -135,9 +142,13 @@ class BettingEngine(object):
                 error_msg, "Low Priority")
             self.discord.send_error(error_msg)
         best_odds = self.get_current_best_odds(league)
-        if best_odds is None:
-            return None
+        if best_odds.empty:
+            return pd.DataFrame
         mean_odds = self.get_current_mean_odds(league)
+        if mean_odds.empty:
+            return pd.DataFrame
+        best_odds = best_odds.dropna()
+        mean_odds = mean_odds.dropna()
         df = fpd.fuzzy_merge(mean_odds, best_odds,
                              on=['home_team', "away_team", "odds_team"],
                              ignore_case=True,
@@ -320,10 +331,14 @@ class BettingEngine(object):
         for sport, name in SPORTS.items():
             try:
                 league_df = self.create_league_df(sport)
+                if league_df.empty:
+                    print(f"No lines available for {sport}")
+                    continue
                 num_lines_scraped += len(league_df)
             except Exception as e:
-                error = "Error creating {sport} df\n" + \
+                error = f"Error creating {sport} df\n" + \
                     str(traceback.format_exc())
+                print(error)
                 self.discord.send_error(error)
                 continue
             try:

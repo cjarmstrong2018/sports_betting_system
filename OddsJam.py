@@ -32,7 +32,7 @@ class OddsJam(object):
         op = webdriver.ChromeOptions()
         op.add_argument(
             "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36")
-        op.add_argument('headless')
+        # op.add_argument('headless')
         op.add_argument("--disable-web-security")
         op.add_argument("--disable-blink-features=AutomationControlled")
         op.add_argument("--log-level=3")
@@ -70,6 +70,7 @@ class OddsJam(object):
             ext = [game['href'] for game in table.find_all(
                 "a", attrs={'href': True}) if "moneyline" in game['href']]
             extensions.extend(ext)
+        extensions = [x for x in extensions if "sportOrLeague" not in x]
         dfs = []
         for ext in extensions:
             url2 = "https://oddsjam.com" + ext
@@ -107,6 +108,8 @@ class OddsJam(object):
             df['away_team'] = away_team
             df['date'] = date
             dfs.append(df)
+        if not dfs:
+            return pd.DataFrame()
         all_lines = pd.concat(dfs)
         all_lines['sport'] = league
         column_order = ['date', 'home_team',
