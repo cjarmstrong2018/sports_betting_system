@@ -74,9 +74,9 @@ class OddsJam(object):
         dfs = []
         for ext in extensions:
             url2 = "https://oddsjam.com" + ext
-            self.web.get(url2)
-            xpath = "//*[@id='__next']/div/main/div[2]/div[4]/div/div[1]/div[1]/div"
             try:
+                self.web.get(url2)
+                xpath = "//*[@id='__next']/div/main/div[2]/div[4]/div/div[1]/div[1]/div"
                 WebDriverWait(self.web, 10).until(
                     EC.presence_of_element_located((By.XPATH, xpath)))
             except:
