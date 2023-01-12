@@ -183,7 +183,7 @@ def normalize_teams(series, league):
     elif league == "MLB":
         teams = pd.read_csv("mlb_teams.csv")
     elif league == "NHL":
-        teams = pd.read_csv("nhl_teams.csv")
+        teams = pd.read_csv("NHL_teams.csv")
     teams = teams['teamName'].to_list()
     cleaned_series = series.apply(lambda x: process.extractOne(x, teams)[0])
     return cleaned_series
