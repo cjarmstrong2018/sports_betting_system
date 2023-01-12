@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, date
 import pandas as pd
 from utils import normalize_teams
 from pybettor import convert_odds
+import sys
 
 
 class OddsTrader(object):
@@ -35,8 +36,12 @@ class OddsTrader(object):
         op.add_argument("--disable-web-security")
         op.add_argument("--disable-blink-features=AutomationControlled")
         op.add_argument("--log-level=3")
-        self.web = webdriver.Chrome(
-            "C:\\Users\\chris\\OneDrive\\Projects\\odds_portal_scraper\\chromedriver", options=op)
+        if sys.platform == "linux":
+            self.web = webdriver.Chrome(
+                '/usr/lib/chromium-browser/chromedriver', options=op)
+        else:
+            self.web = webdriver.Chrome(
+                "C:\\Users\\chris\\OneDrive\\Projects\\odds_portal_scraper\\chromedriver", options=op)
 
     def get_best_lines(self, league):
         assert league in self.leagues.keys()
