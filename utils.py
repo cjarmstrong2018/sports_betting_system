@@ -31,6 +31,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
 from multiprocessing.pool import Pool
 import multiprocessing as mp
 
@@ -448,8 +449,10 @@ def get_odds_portal_driver(odds_type="AVERAGE"):
     op.add_argument("--disable-blink-features=AutomationControlled")
     op.add_argument("--log-level=3")
     if sys.platform == "linux":
-        web = webdriver.Chrome(
-            '/usr/lib/chromium-browser/chromedriver', options=op)
+        # path to where you saved chromedriver binary
+        webdriver_service = Service("'/usr/lib/chromium-browser/chromedriver'")
+        web = webdriver.Chrome(service=webdriver_service,
+                               options=chrome_options)
     else:
         web = webdriver.Chrome(
             "C:\\Users\\chris\\OneDrive\\Projects\\odds_portal_scraper\\chromedriver", options=op)
