@@ -1,11 +1,12 @@
 import pandas as pd
+from dateutil import parser
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException, ElementClickInterceptedException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
-from datetime import datetime
+from datetime import datetime, timedelta
 from pybettor import convert_odds
 import sys
 
@@ -59,10 +60,9 @@ class OddsJam(object):
         self.web.get(url)
         xpath = '//*[@id="__next"]/div/main/div[1]/div[1]/div'
         try:
-            WebDriverWait(self.web, 10).until(
+            WebDriverWait(self.web, 4).until(
                 EC.presence_of_element_located((By.XPATH, xpath)))
         except:
-            print(f"Error with {league}")
             return pd.DataFrame()
         soup = BeautifulSoup(self.web.page_source, "html.parser")
         extensions = []
@@ -119,6 +119,88 @@ class OddsJam(object):
         all_lines['odds'] = all_lines['odds'].apply(
             lambda x: convert_odds(x, cat_in="us")['Decimal'])
         return all_lines
+
+    def get_best_lines(self, league):
+        """
+        Parses OddsJam for the best lines available for a given event
+
+        Args:
+            league (str): the league of interest
+        """
+        assert league in self.urls.keys()
+
+        url = self.urls.get(league)
+
+        data = []
+        self.web.get(url)
+        xpath = '//*[@id="__next"]/div/main/div[1]/div[1]/div'
+        try:
+            WebDriverWait(self.web, 10).until(
+                EC.presence_of_element_located((By.XPATH, xpath)))
+        except:
+            print(f"Error with {league}")
+            return pd.DataFrame()
+        soup = BeautifulSoup(self.web.page_source, "html.parser")
+        for table in soup.find_all("div", attrs={"class": "grid gap-6 grid-cols-1 2xl:grid-cols-2"}):
+            # Handle dates
+            date = table.previous_sibling()[0]
+            if date is None:
+                break
+            date = date.text
+            if "Today" in date:
+                date = datetime.today()
+            elif "Tomorrow" in date:
+                date = date.today + timedelta(days=1)
+            elif date in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']:
+                # Path this later
+                continue
+            else:
+                date += f" {datetime.today().year}"
+                date = parser.parse(date)
+            game_tags = table.find_all(
+                'div', class_="bg-white rounded-xl flex justify-between h-[120px] shadow")
+            for game in game_tags:
+                entry = {}
+                time = game.find(
+                    'span', class_="text-brand-gray-1 text-xs font-prompt uppercase flex items-center").text.strip()
+                date_time = datetime.strptime(time, "%H:%M%p")
+                date_time = date_time.replace(
+                    day=date.day, month=date.month, year=date.year)
+                teams = game.find_all(
+                    'p', class_="text-base font-inter text-brand-gray-1 font-semibold overflow-hidden truncate")
+                home_team, away_team = [x.text for x in teams]
+
+                moneyline_tag = game.find(
+                    "a", class_="px-3 flex flex-col justify-between py-2 w-[105px] border-brand-gray-10 border-l-2")
+                try:
+                    home_odds, away_odds = moneyline_tag.find_all(
+                        "p", class_="font-inter text-brand-gray-1 font-bold text-sm")
+                    home_odds = int(home_odds.text)
+                    away_odds = int(away_odds.text)
+                except ValueError:
+                    continue
+                best_books = moneyline_tag.find_all('img', attrs={'alt': True})
+                home_bookie, away_bookie = [x['alt'] for x in best_books]
+                home_entry = {
+                    "date": date_time,
+                    "home_team": home_team,
+                    'away_team': away_team,
+                    "odds_team": home_team,
+                    'odds_book': home_bookie,
+                    'odds': home_odds,
+                }
+                away_entry = {
+                    "date": date_time,
+                    "home_team": home_team,
+                    'away_team': away_team,
+                    "odds_team": away_team,
+                    'odds_book': away_bookie,
+                    'odds': away_odds,
+                }
+
+                data.append(home_entry)
+                data.append(away_entry)
+        return pd.DataFrame(data)
 
     def exit(self):
         """

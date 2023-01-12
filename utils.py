@@ -182,6 +182,8 @@ def normalize_teams(series, league):
         teams.columns = ['abbreviation', 'teamName']
     elif league == "MLB":
         teams = pd.read_csv("mlb_teams.csv")
+    elif league == "NHL":
+        teams = pd.read_csv("nhl_teams.csv")
     teams = teams['teamName'].to_list()
     cleaned_series = series.apply(lambda x: process.extractOne(x, teams)[0])
     return cleaned_series
@@ -441,7 +443,7 @@ def get_odds_portal_driver(odds_type="AVERAGE"):
     op = webdriver.ChromeOptions()
     op.add_argument(
         "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36")
-    # op.add_argument('headless')
+    op.add_argument('headless')
     op.add_argument("--disable-web-security")
     op.add_argument("--disable-blink-features=AutomationControlled")
     op.add_argument("--log-level=3")

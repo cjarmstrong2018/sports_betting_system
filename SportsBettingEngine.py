@@ -3,6 +3,7 @@ import numpy as np
 from OddsPortal import OddsPortal
 from DiscordAlerts import DiscordAlert
 from OddsJam import OddsJam
+from OddsTrader import OddsTrader
 import fuzzy_pandas as fpd
 import os
 from dotenv import load_dotenv
@@ -62,7 +63,7 @@ class BettingEngine(object):
         self.trades_path = "trades.csv"
         self.initial_bankroll = 500
         self.discord = DiscordAlert()
-        self.oddsjam = OddsJam()
+        self.oddstrader = OddsTrader()
         try:
             self.odds_portal = OddsPortal()
         except Exception as e:
@@ -86,13 +87,9 @@ class BettingEngine(object):
 
         Return: DataFrame of the best odds and the respective bookie
         """
-        df = self.oddsjam.get_lines(sport)
+        df = self.oddstrader.get_best_lines(sport)
         if df.empty:
             return pd.DataFrame()
-        df = df.reset_index(drop=True)
-        highest_odds_idx = df.groupby(['home_team', 'away_team', "odds_team"])[
-            'odds'].idxmax()
-        df = df.iloc[highest_odds_idx]
         return df
 
     def get_current_mean_odds(self, sport) -> pd.DataFrame:
@@ -143,9 +140,11 @@ class BettingEngine(object):
             self.discord.send_error(error_msg)
         best_odds = self.get_current_best_odds(league)
         if best_odds.empty:
+            print("Empty Best Odds df")
             return pd.DataFrame
         mean_odds = self.get_current_mean_odds(league)
         if mean_odds.empty:
+            print("Empty mean Odds df")
             return pd.DataFrame
         best_odds = best_odds.dropna()
         mean_odds = mean_odds.dropna()
@@ -154,7 +153,7 @@ class BettingEngine(object):
                              ignore_case=True,
                              keep_left=['date', 'home_team',
                                         'away_team', 'odds_team', 'mean_odds'],
-                             keep_right=['sport', 'bookmaker', 'odds'],
+                             keep_right=['bookmaker', 'odds'],
                              method="levenshtein",
                              join="inner",
                              threshold=0.9)
@@ -173,6 +172,7 @@ class BettingEngine(object):
             the channel
         """
         df = df[df['date'] < datetime.now() + pd.Timedelta(5, 'h')]
+        print(f"Checking {len(df)} lines within window")
         df['mean_implied_probability'] = 1 / df['mean_odds']
         df['highest_implied_probability'] = 1 / df['odds']
         df['thresh'] = 1 / (df['mean_implied_probability'] - self._alpha)
@@ -359,7 +359,7 @@ class BettingEngine(object):
                 self.discord.send_error(error)
                 continue
             try:
-                print(f"Gathered lines for {sport}looking for trades")
+                print(f"Gathered lines for {sport}! looking for trades")
                 trades_df = self.find_trades(league_df)
             except Exception as e:
                 e = str(e)
@@ -369,6 +369,7 @@ class BettingEngine(object):
 
                 continue
             if not trades_df.empty:
+                print(f"Trades found in {sport}")
                 all_trades.append(trades_df)
         if all_trades:
             print("Trades spotted! Sending all info")
@@ -381,4 +382,4 @@ class BettingEngine(object):
         self.discord.send_error(
             f"Engine completed, analyzed odds for {num_lines_scraped} games")
         self.odds_portal.exit()
-        self.oddsjam.exit()
+        self.oddstrader.exit()

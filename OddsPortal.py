@@ -44,7 +44,7 @@ class OddsPortal(object):
         url = self.paths.get(league)
         self.web.get(url)
         table_xpath = '/html/body/div[1]/div/div[1]/div/main/div[2]/div[7]'
-        WebDriverWait(self.web, 10).until(
+        WebDriverWait(self.web, 4).until(
             EC.element_to_be_clickable((By.XPATH, table_xpath)))
 
         soup = BeautifulSoup(self.web.page_source, 'html.parser')
