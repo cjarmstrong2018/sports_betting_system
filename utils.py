@@ -452,7 +452,7 @@ def get_odds_portal_driver(odds_type="AVERAGE"):
         # path to where you saved chromedriver binary
         webdriver_service = Service("'/usr/lib/chromium-browser/chromedriver'")
         web = webdriver.Chrome(service=webdriver_service,
-                               options=chrome_options)
+                               options=op)
     else:
         web = webdriver.Chrome(
             "C:\\Users\\chris\\OneDrive\\Projects\\odds_portal_scraper\\chromedriver", options=op)
