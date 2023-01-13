@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 from pybettor import convert_odds
 import sys
+from utils import central_time_now
 
 
 class OddsJam(object):
@@ -28,6 +29,7 @@ class OddsJam(object):
             "SerieA": "https://oddsjam.com/soccer/league/italy-serie-a",
             "LaLiga": "https://oddsjam.com/soccer/league/spain-la-liga",
             "NHL": "https://oddsjam.com/nhl/odds",
+            "Ligue1": "https://oddsjam.com/soccer/league/france-ligue-1"
         }
 
         op = webdriver.ChromeOptions()
@@ -89,7 +91,7 @@ class OddsJam(object):
                 continue
             date_tag = date_tag.text + f" {datetime.now().year}"
             date = datetime.strptime(date_tag, "%a, %b %d at %I:%M %p %Y")
-            if abridged and date > datetime.now() + timedelta(days=1):
+            if abridged and date > central_time_now() + timedelta(days=1):
                 break
             away_team, home_team = [x['id'] for x in soup2.find_all(
                 "div", attrs={'class': "lg:pl-2 w-[85%]"})[:2]]

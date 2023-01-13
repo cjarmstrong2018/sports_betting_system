@@ -509,3 +509,11 @@ def basic_kelly_criterion(prob, odds, kelly_size=1):
     b = odds - 1
     q = 1 - prob
     return ((b * prob - q) / b) * kelly_size
+
+
+def central_time_now():
+    now = datetime.now(pytz.utc)
+    tz = pytz.timezone('US/Central')
+    now = now.astimezone(tz)
+    now = now.replace(tzinfo=None)
+    return now

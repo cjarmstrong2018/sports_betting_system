@@ -4,6 +4,7 @@ import json
 import requests
 import pytz
 from datetime import datetime, timedelta
+from utils import central_time_now
 
 
 class OddsPortal(object):
@@ -24,7 +25,8 @@ class OddsPortal(object):
             "EPL": "https://www.oddsportal.com/soccer/england/premier-league/",
             "LaLiga": "https://www.oddsportal.com/soccer/spain/laliga/",
             "SerieA": "https://www.oddsportal.com/soccer/italy/serie-a/",
-            "Champions_League": "https://www.oddsportal.com/soccer/europe/champions-league/"
+            "Champions_League": "https://www.oddsportal.com/soccer/europe/champions-league/",
+            "Ligue1": "https://www.oddsportal.com/soccer/france/ligue-1/"
 
         }
 
@@ -83,9 +85,9 @@ class OddsPortal(object):
             hours, mins = time.split(":")
             date = current_date + \
                 timedelta(hours=int(hours), minutes=int(mins))
-            if date < datetime.now():
+            if date < central_time_now():
                 print(
-                    f"game started! {time} {datetime.now()} {date.strftime('%m-%d-%Y %H:%M %p')}")
+                    f"game started! {time} {central_time_now()} {date.strftime('%m-%d-%Y %H:%M %p')}")
                 continue
             if abridged and date > datetime.now() + timedelta(days=1):
                 break

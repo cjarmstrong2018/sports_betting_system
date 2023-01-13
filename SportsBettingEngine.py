@@ -33,10 +33,11 @@ SPORTS = {
     "NHL": "icehockey_nhl",
     "NCAAB": "basketball_ncaab",
     "NCAAF": "americanfootball_ncaaf",
-    # "EPL": "English Premier League",
+    "EPL": "English Premier League",
     "LaLiga": "La Liga",
     "SerieA": "Serie A",
-    "Champions_League": "Champions league"
+    "Champions_League": "Champions league",
+    "Ligue1": "League_1"
 }
 
 """
