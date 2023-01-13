@@ -38,7 +38,7 @@ class OddsJam(object):
         op.add_argument("--disable-blink-features=AutomationControlled")
         op.add_argument("--log-level=3")
         if sys.platform == "linux":
-            chromedriver_path = '/usr/bin/chromedriver'
+            chromedriver_path = '/home/christian_armstrong25/sports_betting_system/chromedriver'
         else:
             chromedriver_path = "C:\\Users\\chris\\OneDrive\\Projects\\odds_portal_scraper\\chromedriver"
         self.web = webdriver.Chrome(chromedriver_path, options=op)
