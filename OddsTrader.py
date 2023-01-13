@@ -120,7 +120,7 @@ class OddsTrader(object):
         df['odds'] = df['odds'].astype(int)
         df['odds'] = df['odds'].apply(
             lambda x: convert_odds(x, cat_in="us")['Decimal'])
-        df = df[df['date'] < datetime.now()]
+        df = df[df['date'] > datetime.now()]
         return df
 
     def exit(self):
