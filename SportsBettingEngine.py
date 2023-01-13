@@ -33,7 +33,7 @@ SPORTS = {
     "NHL": "icehockey_nhl",
     "NCAAB": "basketball_ncaab",
     "NCAAF": "americanfootball_ncaaf",
-    #"EPL": "English Premier League",
+    # "EPL": "English Premier League",
     "LaLiga": "La Liga",
     "SerieA": "Serie A",
     "Champions_League": "Champions league"
@@ -64,6 +64,7 @@ class BettingEngine(object):
         self.initial_bankroll = 500
         self.discord = DiscordAlert()
         self.oddstrader = OddsTrader()
+        self.oddsjam = OddsJam()
         try:
             self.odds_portal = OddsPortal()
         except Exception as e:
@@ -87,10 +88,17 @@ class BettingEngine(object):
 
         Return: DataFrame of the best odds and the respective bookie
         """
-        df = self.oddstrader.get_best_lines(sport)
+        # df = self.oddstrader.get_best_lines(sport)
+        # if df.empty:
+        #     return pd.DataFrame()
+        df = self.oddsjam.get_lines(sport)
         if df.empty:
-            return pd.DataFrame()
-        return df
+            return pd.DataFrame
+        df = df.reset_index(drop=True)
+        highest_idx = df.groupby(
+            ['home_team', "away_team", "odds_team"])['odds'].idxmax()
+        df = df.iloc[highest_idx, :]
+        return df.reset_index(drop=True)
 
     def get_current_mean_odds(self, sport) -> pd.DataFrame:
         """
