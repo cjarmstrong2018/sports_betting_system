@@ -33,7 +33,7 @@ class OddsJam(object):
         op = webdriver.ChromeOptions()
         op.add_argument(
             "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36")
-        # op.add_argument('headless')
+        op.add_argument('headless')
         op.add_argument("--disable-web-security")
         op.add_argument("--disable-blink-features=AutomationControlled")
         op.add_argument("--log-level=3")
