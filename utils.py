@@ -453,7 +453,7 @@ def get_odds_portal_driver(odds_type="AVERAGE"):
         # webdriver_service = Service('/usr/lib/chromium-browser/chromedriver')
         # web = webdriver.Chrome(service=webdriver_service,
         #                        options=op)
-        web = webdriver.Chrome(service='/usr/lib/chromium-browser/chromedriver',
+        web = webdriver.Chrome(service='/usr/bin/chromedriver',
                                options=op)
 
     else:
