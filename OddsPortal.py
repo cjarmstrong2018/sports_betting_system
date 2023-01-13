@@ -83,7 +83,8 @@ class OddsPortal(object):
             date = current_date + \
                 timedelta(hours=int(hours), minutes=int(mins))
             if date < datetime.now():
-                print(f"game already started! {date.strftime('%H:%M %p')}")
+                print(
+                    f"game already started! {date.strftime('%d-%m-%Y %H:%M %p')}")
                 continue
             odds = game.find_all('p', class_="height-content")
             if len(odds) == 2:

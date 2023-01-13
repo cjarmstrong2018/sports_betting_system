@@ -63,8 +63,9 @@ class BettingEngine(object):
         self.trades_path = "trades.csv"
         self.initial_bankroll = 500
         self.discord = DiscordAlert()
-        self.oddstrader = OddsTrader()
+        # self.oddstrader = OddsTrader()
         self.oddsjam = OddsJam()
+        self.valid_lines = 0
         try:
             self.odds_portal = OddsPortal()
         except Exception as e:
@@ -181,6 +182,7 @@ class BettingEngine(object):
         """
         df = df[df['date'] < datetime.now() + pd.Timedelta(5, 'h')]
         print(f"Checking {len(df)} lines within window")
+        self.valid_lines += len(df)
         df['mean_implied_probability'] = 1 / df['mean_odds']
         df['highest_implied_probability'] = 1 / df['odds']
         df['thresh'] = 1 / (df['mean_implied_probability'] - self._alpha)
@@ -390,4 +392,5 @@ class BettingEngine(object):
         self.discord.send_error(
             f"Engine completed, analyzed odds for {num_lines_scraped} games")
         self.odds_portal.exit()
-        self.oddstrader.exit()
+        self.oddsjam.exit()
+        # self.oddstrader.exit()
