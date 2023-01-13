@@ -69,6 +69,7 @@ class OddsPortal(object):
                     current_date = datetime.strptime(
                         text, "Tomorrow, %d %b %Y")
                 else:
+
                     current_date = datetime.strptime(text.strip(), "%d %b %Y")
             game = child.find(
                 "div", class_="flex hover:bg-[#f9e9cc] group border-l border-r border-black-borders")
@@ -84,7 +85,7 @@ class OddsPortal(object):
                 timedelta(hours=int(hours), minutes=int(mins))
             if date < datetime.now():
                 print(
-                    f"game already started! {date.strftime('%d-%m-%Y %H:%M %p')}")
+                    f"game already started!{text} {date.strftime('%d-%m-%Y %H:%M %p')}")
                 continue
             if abridged and date > datetime.now() + timedelta(days=1):
                 break
