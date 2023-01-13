@@ -42,7 +42,7 @@ class OddsTrader(object):
         if sys.platform == "linux":
             # '/usr/bin/chromedriver',
             self.web = webdriver.Chrome(
-                '/usr/bin/chromedriver/', options=op)  #
+                '/usr/bin/chromedriver', options=op)  #
         else:
             self.web = webdriver.Chrome(
                 "C:\\Users\\chris\\OneDrive\\Projects\\odds_portal_scraper\\chromedriver", options=op)
