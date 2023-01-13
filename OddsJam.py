@@ -91,12 +91,8 @@ class OddsJam(object):
             date = datetime.strptime(date_tag, "%a, %b %d at %I:%M %p %Y")
             if abridged and date > datetime.now() + timedelta(days=1):
                 break
-            if "soccer" in url2:
-                away_team, home_team, _ = [x['id'] for x in soup2.find_all(
-                    "div", attrs={'class': "lg:pl-2 w-[85%]"})]
-            else:
-                away_team, home_team = [x['id'] for x in soup2.find_all(
-                    "div", attrs={'class': "lg:pl-2 w-[85%]"})]
+            away_team, home_team = [x['id'] for x in soup2.find_all(
+                "div", attrs={'class': "lg:pl-2 w-[85%]"})[:2]]
             away_team = (" ").join(away_team.split("_"))
             home_team = (" ").join(home_team.split("_"))
             lines = soup2.find_all("p", attrs={'data-testid': True})
