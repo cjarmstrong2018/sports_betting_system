@@ -92,7 +92,7 @@ class BettingEngine(object):
         # df = self.oddstrader.get_best_lines(sport)
         # if df.empty:
         #     return pd.DataFrame()
-        df = self.oddsjam.get_lines(sport)
+        df = self.oddsjam.get_lines(sport, abridged=True)
         if df.empty:
             return pd.DataFrame
         df = df.reset_index(drop=True)
@@ -111,7 +111,7 @@ class BettingEngine(object):
 
         Returns: DataFrame ready to merge with the current best odds
         """
-        op_df = self.odds_portal.get_odds(sport)
+        op_df = self.odds_portal.get_odds(sport, abridged=True)
         if op_df.empty:
             return pd.DataFrame()
         op_df = op_df.reset_index()

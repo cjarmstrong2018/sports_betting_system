@@ -28,7 +28,7 @@ class OddsPortal(object):
 
         }
 
-    def get_odds(self, league) -> pd.DataFrame:
+    def get_odds(self, league, abridged=False) -> pd.DataFrame:
         """
         Collects the average odds posted on www.oddportal.com for a given league
         and returns a formatted dataframe of the odds
@@ -86,6 +86,8 @@ class OddsPortal(object):
                 print(
                     f"game already started! {date.strftime('%d-%m-%Y %H:%M %p')}")
                 continue
+            if abridged and date > datetime.now() + timedelta(days=1):
+                break
             odds = game.find_all('p', class_="height-content")
             if len(odds) == 2:
                 home_odds, away_odds = [x.text for x in odds]

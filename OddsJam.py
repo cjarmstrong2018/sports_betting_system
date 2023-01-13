@@ -43,7 +43,7 @@ class OddsJam(object):
             chromedriver_path = "C:\\Users\\chris\\OneDrive\\Projects\\odds_portal_scraper\\chromedriver"
         self.web = webdriver.Chrome(chromedriver_path, options=op)
 
-    def get_lines(self, league) -> pd.DataFrame:
+    def get_lines(self, league, abridged=False) -> pd.DataFrame:
         """
         Collects the odds posted on www.oddjam.com for a given league
         and returns a formatted dataframe of the odds
@@ -89,6 +89,8 @@ class OddsJam(object):
                 continue
             date_tag = date_tag.text + f" {datetime.now().year}"
             date = datetime.strptime(date_tag, "%a, %b %d at %I:%M %p %Y")
+            if abridged and date > datetime.now() + timedelta(days=1):
+                break
             if "soccer" in url2:
                 away_team, home_team, _ = [x['id'] for x in soup2.find_all(
                     "div", attrs={'class': "lg:pl-2 w-[85%]"})]
