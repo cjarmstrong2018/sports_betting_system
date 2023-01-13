@@ -85,7 +85,7 @@ class OddsPortal(object):
                 timedelta(hours=int(hours), minutes=int(mins))
             if date < datetime.now():
                 print(
-                    f"game already started!{text} {date.strftime('%d-%m-%Y %H:%M %p')}")
+                    f"game already started!{date.strftime('%m-%d-%Y %H:%M %p')}")
                 continue
             if abridged and date > datetime.now() + timedelta(days=1):
                 break

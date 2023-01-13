@@ -369,7 +369,7 @@ class BettingEngine(object):
                 self.discord.send_error(error)
                 continue
             try:
-                print(f"Gathered lines for {sport}! looking for trades")
+                print(f"Gathered lines for {sport}!")
                 trades_df = self.find_trades(league_df)
             except Exception as e:
                 e = str(e)
@@ -390,7 +390,7 @@ class BettingEngine(object):
             self.create_and_send_notification_cja(df)
             self.save_spotted_trades(df)
         self.discord.send_error(
-            f"Engine completed, analyzed odds for {num_lines_scraped} games")
+            f"Engine completed, analyzed odds for {self.valid_lines} games")
         self.odds_portal.exit()
         self.oddsjam.exit()
         # self.oddstrader.exit()
