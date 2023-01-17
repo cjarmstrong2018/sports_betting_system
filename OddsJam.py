@@ -5,6 +5,7 @@ from selenium.common.exceptions import TimeoutException, ElementClickIntercepted
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 from pybettor import convert_odds
@@ -39,11 +40,20 @@ class OddsJam(object):
         op.add_argument("--disable-web-security")
         op.add_argument("--disable-blink-features=AutomationControlled")
         op.add_argument("--log-level=3")
+        op.add_argument("--start-maximized")
         if sys.platform == "linux":
             chromedriver_path = '/home/christian_armstrong25/sports_betting_system/chromedriver'
         else:
             chromedriver_path = "C:\\Users\\chris\\OneDrive\\Projects\\odds_portal_scraper\\chromedriver"
         self.web = webdriver.Chrome(chromedriver_path, options=op)
+        # state_xpath = '/html/body/div[1]/div/header/nav/div/div/div[2]/div[4]/div/div/div[2]/div[2]/input'
+        # self.web.get("https://www.oddsjam.com")
+        # WebDriverWait(self.web, 10).until(
+        #     EC.presence_of_element_located((By.XPATH, state_xpath)))
+        # state = self.web.find_element(By.XPATH, state_xpath)
+        # state.click()
+        # state.send_keys("IOWA")
+        # state.send_keys(Keys.ENTER)
 
     def get_lines(self, league, abridged=False) -> pd.DataFrame:
         """

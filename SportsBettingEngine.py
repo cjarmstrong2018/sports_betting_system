@@ -238,10 +238,16 @@ class BettingEngine(object):
         self.discord.send_msg(intro_msg)
         for i, row in df.iterrows():
             date = row['date'].strftime("%m/%d %I:%M %p")
+            american_thresh = "+" + \
+                str(row['american_thresh']) if row['american_thresh'] > 0 else str(
+                    row['american_thresh'])
+            american_best = "+" + \
+                str(row['american_odds_best']) if row['american_odds_best'] > 0 else str(
+                    row['american_odds_best'])
             msg = f"{date} {row['away_team']} @ {row['home_team']}\n"
             msg += f"Bet on {row['odds_team']} Moneyline with {row['bookmaker']}\n"
-            msg += f"Current Odds: {row['odds']} ({row['american_odds_best']}).\n"
-            msg += f"The bet is good if the odds are at least {round(row['thresh'], 2)} ({row['american_thresh']})\n"
+            msg += f"Current Odds: {row['odds']} ({american_best}).\n"
+            msg += f"The bet is good if the odds are at least {round(row['thresh'], 2)} ({american_thresh})\n"
             msg += "Using Kelly Criterion, we reccommend betting the following percentages of your betting bankroll: \n"
             msg += f"Full Kelly: {round(row['kelly'] * 100)}%\n"
             msg += f"Half Kelly: {round(row['half_kelly'] * 100)}%\n"
@@ -269,11 +275,17 @@ class BettingEngine(object):
         self.discord.send_msg_cja(intro_msg)
         for i, row in df.iterrows():
             date = row['date'].strftime("%m/%d %I:%M %p")
+            american_thresh = "+" + \
+                str(row['american_thresh']) if row['american_thresh'] > 0 else str(
+                    row['american_thresh'])
+            american_best = "+" + \
+                str(row['american_odds_best']) if row['american_odds_best'] > 0 else str(
+                    row['american_odds_best'])
             msg = f"{date} {row['away_team']}@{row['home_team']}\n"
             msg += f"ID: {row['id']} \n"
             msg += f"Bet on {row['odds_team']} Moneyline with {row['bookmaker']}\n"
-            msg += f"Current Odds: {row['odds']} {row['american_odds_best']}.\n"
-            msg += f"Lowest Profitable Odds: {round(row['thresh'], 2)} {round(row['american_thresh'], 2)}\n"
+            msg += f"Current Odds: {row['odds']} {american_best}.\n"
+            msg += f"Lowest Profitable Odds: {round(row['thresh'], 2)} {american_thresh}\n"
             msg += f"Half Kelly wager size: ${round(row['cja_wager'], 2)} \n"
             msg += "\n\n"
             self.discord.send_msg_cja(msg)
