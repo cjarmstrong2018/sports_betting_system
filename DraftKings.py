@@ -22,7 +22,8 @@ class DraftKings(object):
             "SerieA": 40030,
             "Champions_League": 40685,
             "Ligue1": 40032,
-            "MLS": 89345
+            "MLS": 89345,
+            "Bundesliga": 40481,
         }
 
     def get_odds(self, league):

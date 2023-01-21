@@ -8,7 +8,7 @@ from pybettor import convert_odds
 
 class Barstool(object):
     def __init__(self) -> None:
-        self.name = "DraftKings"
+        self.name = "Barstool"
         self.league_ids = {
             "NBA": "basketball/nba",
             "MLB": "baseball/mlb",
@@ -21,7 +21,8 @@ class Barstool(object):
             "SerieA": "football/italy/serie_a",
             "Champions_League": "football/champions_league",
             "Ligue1": "football/france/ligue_1",
-            "MLS": "football/usa/mls"
+            "MLS": "football/usa/mls",
+            "Bundesliga": "football/germany/bundesliga"
         }
 
     def get_odds(self, league):
@@ -44,7 +45,7 @@ class Barstool(object):
             event_info = event.get("event")
             event_name = event_info.get("englishName")
             try:
-                away_team, home_team = event_name.split(' - ')
+                home_team, away_team = event_name.split(' - ')
             except:
                 print(event_info)
             away_team = away_team.strip()

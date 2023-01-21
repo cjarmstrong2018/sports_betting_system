@@ -2,8 +2,11 @@ import pandas as pd
 import numpy as np
 from OddsPortal import OddsPortal
 from DiscordAlerts import DiscordAlert
-from OddsJam import OddsJam
-from OddsTrader import OddsTrader
+from DraftKings import DraftKings
+from BetRivers import BetRivers
+from BarstoolSB import Barstool
+from PointsBet import PointsBet
+from Caesars import Caesars
 import fuzzy_pandas as fpd
 import os
 from dotenv import load_dotenv
@@ -13,39 +16,27 @@ import requests
 import pickle
 from pyvirtualdisplay import Display
 import traceback
+from datetime import datetime, timedelta
 
 if sys.platform == "linux":
     display = Display(visible=0, size=(800, 600))
     display.start()
 
-REGIONS = 'us'  # uk | us | eu | au. Multiple can be specified if comma delimited
-MARKETS = 'h2h'  # h2h | spreads | totals. Multiple can be specified if comma delimited
-ODDS_FORMAT = 'decimal'  # decimal | american
-DATE_FORMAT = 'iso'
-
-SUPPORTED_BOOKS = ['DraftKings', 'FanDuel', 'Barstool Sportsbook',
-                   'BetRivers', 'BetMGM', 'PointsBet (US)', 'William Hill (US)']
-
 SPORTS = {
-    "NBA": "basketball_nba",
-    "NFL": "americanfootball_nfl",
-    "MLB": "TBD",
-    "NHL": "icehockey_nhl",
-    "NCAAB": "basketball_ncaab",
-    "NCAAF": "americanfootball_ncaaf",
-    "EPL": "English Premier League",
-    "LaLiga": "La Liga",
-    "SerieA": "Serie A",
-    "Champions_League": "Champions league",
-    "Ligue1": "League_1"
+    "NBA": True,
+    "NFL": True,
+    "MLB": False,
+    "NHL": True,
+    "NCAAB": True,
+    "NCAAF": False,
+    "EPL": True,
+    "LaLiga": True,
+    "SerieA": True,
+    "Champions_League": False,
+    "Ligue1":   True,
+    "Bundesliga": True,
+    "MLS": False
 }
-
-"""
-To-do:
-    - only return game within 1 hour of starting
-    - Add functionality to parse my responses to bets
-    - determine when to run the bot
-"""
 
 
 class BettingEngine(object):
@@ -64,8 +55,8 @@ class BettingEngine(object):
         self.trades_path = "trades.csv"
         self.initial_bankroll = 500
         self.discord = DiscordAlert()
-        # self.oddstrader = OddsTrader()
-        self.oddsjam = OddsJam()
+        self.books = [DraftKings(), Barstool(), PointsBet(),
+                      Caesars(), BetRivers()]
         self.valid_lines = 0
         try:
             self.odds_portal = OddsPortal()
@@ -80,27 +71,6 @@ class BettingEngine(object):
             self.discord.send_error(
                 "Error Loading Model: " + str(traceback.format_exc()))
             raise e
-
-    def get_current_best_odds(self, sport) -> pd.DataFrame:
-        """
-        Loads current odds for individual books and returns a DataFrame
-        of the decimal odds for each event
-
-        sport (str): the league of interest
-
-        Return: DataFrame of the best odds and the respective bookie
-        """
-        # df = self.oddstrader.get_best_lines(sport)
-        # if df.empty:
-        #     return pd.DataFrame()
-        df = self.oddsjam.get_lines(sport, abridged=True)
-        if df.empty:
-            return pd.DataFrame
-        df = df.reset_index(drop=True)
-        highest_idx = df.groupby(
-            ['home_team', "away_team", "odds_team"])['odds'].idxmax()
-        df = df.iloc[highest_idx, :]
-        return df.reset_index(drop=True)
 
     def get_current_mean_odds(self, sport) -> pd.DataFrame:
         """
@@ -142,23 +112,17 @@ class BettingEngine(object):
         Returns:
             pd.DataFrame:merged DataFrame ready for analysis
         """
-        sport_title = SPORTS.get(league, False)
-        if not sport_title:
-            error_msg = "Invalid LEAGUE! Cannot get DataFrame from OddsAPI"
-            error_msg = self.discord.construct_error_msg(
-                error_msg, "Low Priority")
-            self.discord.send_error(error_msg)
-        best_odds = self.get_current_best_odds(league)
-        if best_odds.empty:
-            print("Empty Best Odds df")
+        all_lines = self.get_sportsbook_lines(league)
+        if all_lines.empty:
+            print("Empty Odds df")
             return pd.DataFrame
         mean_odds = self.get_current_mean_odds(league)
         if mean_odds.empty:
             print("Empty mean Odds df")
             return pd.DataFrame
-        best_odds = best_odds.dropna()
+        all_lines = all_lines.dropna()
         mean_odds = mean_odds.dropna()
-        df = fpd.fuzzy_merge(mean_odds, best_odds,
+        df = fpd.fuzzy_merge(mean_odds, all_lines,
                              on=['home_team', "away_team", "odds_team"],
                              ignore_case=True,
                              keep_left=['date', 'home_team',
@@ -168,6 +132,34 @@ class BettingEngine(object):
                              join="inner",
                              threshold=0.9)
         return df
+
+    def get_sportsbook_lines(self, league) -> pd.DataFrame:
+        """
+        Uses custom built scrapers to gather live odds for each sportsbook directly
+
+        Args:
+            league (str): the name of the league want odds for
+
+        Returns:
+            pd.DataFrame: dataframe with the following columns
+            ['date', 'home_team', 'away_team', "odds_team", 'odds', "bookmaker"]
+        """
+        dfs = []
+        for book in self.books:
+            try:
+                df = book.get_odds(league)
+            except:
+                print(f"Error with {book.name}")
+                continue
+            df['bookmaker'] = book.name
+            if not df.empty:
+                dfs.append(df)
+        if not dfs:
+            return pd.DataFrame()
+        books_odds = pd.concat(dfs)
+        books_odds = books_odds[books_odds['date'] <=
+                                (central_time_now() + timedelta(days=1))]
+        return books_odds
 
     def find_trades(self, df) -> pd.DataFrame:
         """
@@ -367,7 +359,9 @@ class BettingEngine(object):
         all_trades = []
         num_lines_scraped = 0
         error_occured = False
-        for sport, name in SPORTS.items():
+        for sport, in_season in SPORTS.items():
+            if not in_season:
+                continue
             print(f"Scraping odds for {sport}")
             try:
                 league_df = self.create_league_df(sport)
@@ -403,7 +397,5 @@ class BettingEngine(object):
             self.create_and_send_notification_cja(df)
             self.save_spotted_trades(df)
         self.discord.send_error(
-            f"Engine completed, analyzed odds for {self.valid_lines} games")
+            f"Engine completed, analyzed {self.valid_lines} lines")
         self.odds_portal.exit()
-        self.oddsjam.exit()
-        # self.oddstrader.exit()

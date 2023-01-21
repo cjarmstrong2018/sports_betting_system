@@ -463,13 +463,13 @@ def get_odds_portal_driver(odds_type="AVERAGE"):
 
     web.get("https://www.oddsportal.com/login/")
 
-    login_xpath = '/html/body/div[1]/div/div[1]/div/main/div[2]/div[5]/div/div/form/div[4]/span/input'
+    login_xpath = '/html/body/div[1]/div/div[1]/div/main/div[2]/div[4]/div/div/form/div[4]/span/input'
     WebDriverWait(web, 10).until(
         EC.element_to_be_clickable((By.XPATH, login_xpath)))
-    user_xpath = '/html/body/div[1]/div/div[1]/div/main/div[2]/div[5]/div/div/form/div[1]/div[2]/input'
+    user_xpath = '/html/body/div[1]/div/div[1]/div/main/div[2]/div[4]/div/div/form/div[1]/div[2]/input'
     user = web.find_element(By.XPATH, user_xpath)
     user.send_keys("cjarmstrong2018")
-    pswd_xpath = '/html/body/div[1]/div/div[1]/div/main/div[2]/div[5]/div/div/form/div[2]/div[2]/input'
+    pswd_xpath = '/html/body/div[1]/div/div[1]/div/main/div[2]/div[4]/div/div/form/div[2]/div[2]/input'
     pswd = web.find_element(By.XPATH, pswd_xpath)
     pswd.send_keys("Cps!43950649")
 
@@ -477,23 +477,23 @@ def get_odds_portal_driver(odds_type="AVERAGE"):
     web.execute_script("arguments[0].scrollIntoView();", login)
     web.execute_script("arguments[0].click();", login)
 
-    web.get("https://www.oddsportal.com/settings/")
-    if odds_type == "HIGHEST":
-        button_xpath = '/html/body/div[1]/div/div[1]/div/main/div[2]/div[5]/div[3]/form/div[2]/div[2]/div[3]/div/div[2]/input'
-    else:
-        button_xpath = '/html/body/div[1]/div/div[1]/div/main/div[2]/div[5]/div[3]/form/div[2]/div[2]/div[3]/div/div[1]/input'
-    WebDriverWait(web, 10).until(
-        EC.presence_of_element_located((By.XPATH, button_xpath)))
+    # web.get("https://www.oddsportal.com/settings/")
+    # if odds_type == "HIGHEST":
+    #     button_xpath = '/html/body/div[1]/div/div[1]/div/main/div[2]/div[5]/div[3]/form/div[2]/div[2]/div[3]/div/div[2]/input'
+    # else:
+    #     button_xpath = '/html/body/div[1]/div/div[1]/div/main/div[2]/div[5]/div[3]/form/div[2]/div[2]/div[3]/div/div[1]/input'
+    # WebDriverWait(web, 10).until(
+    #     EC.presence_of_element_located((By.XPATH, button_xpath)))
 
-    button = web.find_element(By.XPATH, button_xpath)
-    try:
-        button.click()
-    except ElementClickInterceptedException:
-        print("There may be an error with the odds type!")
+    # button = web.find_element(By.XPATH, button_xpath)
+    # try:
+    #     button.click()
+    # except ElementClickInterceptedException:
+    #     print("There may be an error with the odds type!")
     # button.send_keys('\n')
 
-    save = web.find_element(By.NAME, "settings-submit")
-    save.send_keys("\n")
+    # save = web.find_element(By.NAME, "settings-submit")
+    # save.send_keys("\n")
     return web
 
 

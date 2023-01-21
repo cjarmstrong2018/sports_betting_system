@@ -26,7 +26,9 @@ class OddsPortal(object):
             "LaLiga": "https://www.oddsportal.com/soccer/spain/laliga/",
             "SerieA": "https://www.oddsportal.com/soccer/italy/serie-a/",
             "Champions_League": "https://www.oddsportal.com/soccer/europe/champions-league/",
-            "Ligue1": "https://www.oddsportal.com/soccer/france/ligue-1/"
+            "Ligue1": "https://www.oddsportal.com/soccer/france/ligue-1/",
+            "MLS": "https://www.oddsportal.com/soccer/usa/mls/",
+            "Bundesliga": "https://www.oddsportal.com/soccer/germany/bundesliga/"
 
         }
 
@@ -45,7 +47,7 @@ class OddsPortal(object):
 
         url = self.paths.get(league)
         self.web.get(url)
-        table_xpath = '/html/body/div[1]/div/div[1]/div/main/div[2]/div[7]'
+        table_xpath = '/html/body/div[1]/div/div[1]/div/main/div[2]/div[5]'
         WebDriverWait(self.web, 4).until(
             EC.element_to_be_clickable((By.XPATH, table_xpath)))
 
@@ -86,8 +88,6 @@ class OddsPortal(object):
             date = current_date + \
                 timedelta(hours=int(hours), minutes=int(mins))
             if date < central_time_now():
-                print(
-                    f"game started! {time} {central_time_now()} {date.strftime('%m-%d-%Y %H:%M %p')}")
                 continue
             if abridged and date > datetime.now() + timedelta(days=1):
                 break
