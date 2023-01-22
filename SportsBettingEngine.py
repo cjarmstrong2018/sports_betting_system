@@ -7,6 +7,7 @@ from BetRivers import BetRivers
 from BarstoolSB import Barstool
 from PointsBet import PointsBet
 from Caesars import Caesars
+from FanDuel import FanDuel
 import fuzzy_pandas as fpd
 import os
 from dotenv import load_dotenv
@@ -17,6 +18,7 @@ import pickle
 from pyvirtualdisplay import Display
 import traceback
 from datetime import datetime, timedelta
+
 
 if sys.platform == "linux":
     display = Display(visible=0, size=(800, 600))
@@ -56,7 +58,7 @@ class BettingEngine(object):
         self.initial_bankroll = 500
         self.discord = DiscordAlert()
         self.books = [DraftKings(), Barstool(), PointsBet(),
-                      Caesars(), BetRivers()]
+                      Caesars(), BetRivers(), FanDuel()]
         self.valid_lines = 0
         try:
             self.odds_portal = OddsPortal()
