@@ -84,7 +84,7 @@ class BettingEngine(object):
 
         Returns: DataFrame ready to merge with the current best odds
         """
-        op_df = self.odds_portal.get_odds(sport, abridged=False)
+        op_df = self.odds_portal.get_odds(sport, abridged=True)
         if op_df.empty:
             return pd.DataFrame()
         op_df = op_df.reset_index()
