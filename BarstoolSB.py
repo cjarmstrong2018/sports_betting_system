@@ -57,7 +57,7 @@ class Barstool(object):
             date = date.replace(tzinfo=None)
             lines = event.get("betOffers")
             lines = [x for x in lines if x['criterion'].get(
-                'label') in ["Moneyline", "Full Time"]][0]
+                'label') in ["Moneyline", "Full Time", 'Moneyline - Inc. OT and Shootout']][0]
             lines = lines.get("outcomes")
             for line in lines:
                 odds_team = line.get("englishLabel")
