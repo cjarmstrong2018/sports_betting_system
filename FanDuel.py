@@ -12,7 +12,7 @@ class FanDuel(object):
         self.name = "FanDuel"
         self._group_ids = {
             "NBA": 55978,
-            "NFL": 57494,
+            "NFL": 50037,
             "NCAAB": 53474,
             "MLB": 50084,
             "NCAAF": None,
