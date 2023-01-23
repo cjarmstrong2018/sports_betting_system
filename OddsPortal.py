@@ -72,6 +72,10 @@ class OddsPortal(object):
                     text += (" " + str(datetime.today().year))
                     current_date = datetime.strptime(
                         text, "Tomorrow, %d %b %Y")
+                elif "Yesterday" in text:
+                    text += (" " + str(datetime.today().year))
+                    current_date = datetime.strptime(
+                        text, "Yesterday, %d %b %Y")
                 else:
 
                     current_date = datetime.strptime(text.strip(), "%d %b %Y")
