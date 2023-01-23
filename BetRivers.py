@@ -47,15 +47,12 @@ class BetRivers(object):
 
         odds = pd.json_normalize(data['items'], record_path=['betOffers', 'outcomes'], meta=[
             'id', ['betOffers', "betDescription"]], errors='ignore', meta_prefix='Meta.')
-        odds = odds[['type', 'odds', 'line',
-                    'Meta.id', 'Meta.betOffers.betDescription']]
+        odds = odds[['type', 'odds', 'Meta.id',
+                     'Meta.betOffers.betDescription']]
         odds = odds.rename(columns={'Meta.betOffers.betDescription': 'Bet Type',
                                     'Meta.id': "Game ID", })
-        odds = odds.set_index(['Game ID', "Bet Type", 'type'])
-        odds = odds.unstack(level=[1, 2])
-        odds.columns = ['away spread odds', "home spread odds", "away moneyline", "home moneyline", "tp over odds", "tp under odds",
-                        "away spread line", "home spread line", "ML Line Away", "ML Line Home", "tp over line", "tp under line"]
-        odds = odds.drop(columns=["ML Line Away", "ML Line Home"])
+        odds = odds[odds['Bet Type'].isin(['Moneyline', "Full Time"])]
+        odds = odds.set_index(['Game ID'])
 
         teams = pd.json_normalize(data['items'], 'participants', [
             'id'], errors="ignore", record_prefix='T1').set_index(['id', 'T1home'])
@@ -72,28 +69,28 @@ class BetRivers(object):
         games = games.rename(columns={'id': "Game ID"})
         games = games.set_index('Game ID')
 
-        df = pd.concat([games, teams, odds], axis=1)
-
+        df = teams.merge(games, how='inner', left_index=True, right_index=True)
+        df = df.merge(odds, how='inner', left_index=True, right_index=True)
         df['start'] = pd.to_datetime(df['start'], utc=True)
         df = df.set_index("start")
         df.index = df.index.tz_convert('US/Central')
         df.index = df.index.tz_localize(None)
         df.index.name = 'date'
         columns = ["home_team", "away_team",
-                   "home moneyline", "away moneyline"]
+                   "type", "odds"]
         df = df[columns]
-        df = df.rename(
-            columns={"home moneyline": "home_odds", "away moneyline": "away_odds"})
-        df = df.set_index(['home_team', 'away_team'],
-                          append=True).stack().reset_index()
+        df = df.rename(columns={"type": "odds_team"})
+        df = df.reset_index()
         df.columns = ['date', 'home_team', 'away_team', 'odds_team', 'odds']
         if league in ['NFL', "NBA", "MLB", "NHL"]:
             df['home_team'] = normalize_teams(df['home_team'], league)
             df['away_team'] = normalize_teams(df['away_team'], league)
         df['odds_team'] = np.where(
-            df['odds_team'] == 'home_odds', df['home_team'], df['odds_team'])
+            df['odds_team'] == 'HOME', df['home_team'], df['odds_team'])
         df['odds_team'] = np.where(
-            df['odds_team'] == 'away_odds', df['away_team'], df['odds_team'])
+            df['odds_team'] == 'AWAY', df['away_team'], df['odds_team'])
+        df['odds_team'] = np.where(
+            df['odds_team'] == 'DRAW', "Draw", df['odds_team'])
 
         return df
 
