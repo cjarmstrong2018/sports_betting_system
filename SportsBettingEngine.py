@@ -84,7 +84,7 @@ class BettingEngine(object):
 
         Returns: DataFrame ready to merge with the current best odds
         """
-        op_df = self.odds_portal.get_odds(sport, abridged=True)
+        op_df = self.odds_portal.get_odds(sport, abridged=False)
         if op_df.empty:
             return pd.DataFrame()
         op_df = op_df.reset_index()
@@ -117,11 +117,11 @@ class BettingEngine(object):
         all_lines = self.get_sportsbook_lines(league)
         if all_lines.empty:
             print("Empty Odds df")
-            return pd.DataFrame
+            return pd.DataFrame()
         mean_odds = self.get_current_mean_odds(league)
         if mean_odds.empty:
             print("Empty mean Odds df")
-            return pd.DataFrame
+            return pd.DataFrame()
         all_lines = all_lines.dropna()
         mean_odds = mean_odds.dropna()
         df = fpd.fuzzy_merge(mean_odds, all_lines,
@@ -132,7 +132,7 @@ class BettingEngine(object):
                              keep_right=['bookmaker', 'odds'],
                              method="levenshtein",
                              join="inner",
-                             threshold=0.9)
+                             threshold=0.7)
         return df
 
     def get_sportsbook_lines(self, league) -> pd.DataFrame:
@@ -159,8 +159,8 @@ class BettingEngine(object):
         if not dfs:
             return pd.DataFrame()
         books_odds = pd.concat(dfs)
-        books_odds = books_odds[books_odds['date'] <=
-                                (central_time_now() + timedelta(days=1))]
+        # books_odds = books_odds[books_odds['date'] <=
+        #                         (central_time_now() + timedelta(days=1))]
         return books_odds
 
     def find_trades(self, df) -> pd.DataFrame:
