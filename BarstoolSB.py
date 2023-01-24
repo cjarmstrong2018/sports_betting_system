@@ -4,6 +4,7 @@ import json
 from dateutil import parser
 import pytz
 from pybettor import convert_odds
+from utils import central_time_now
 
 
 class Barstool(object):
@@ -55,6 +56,8 @@ class Barstool(object):
             tz = pytz.timezone('US/Central')
             date = date.astimezone(tz)
             date = date.replace(tzinfo=None)
+            if date < central_time_now():
+                continue
             lines = event.get("betOffers")
             try:
                 lines = [x for x in lines if x['criterion'].get(
