@@ -133,7 +133,7 @@ class BettingEngine(object):
                              keep_right=['bookmaker', 'odds'],
                              method="levenshtein",
                              join="inner",
-                             threshold=0.7)
+                             threshold=0.85)
         return df
 
     def get_sportsbook_lines(self, league) -> pd.DataFrame:
@@ -292,7 +292,7 @@ class BettingEngine(object):
             return self.initial_bankroll
         else:
             trades = pd.read_csv(self.trades_path)
-            trades = trades[trades['cja_placed'] == 1]
+            trades = trades[trades['cja_placed_bet'] == 1]
             trades = trades.dropna()
             bankroll = self.initial_bankroll
             for i, row in trades.iterrows():
