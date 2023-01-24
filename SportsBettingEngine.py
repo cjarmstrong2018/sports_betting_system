@@ -67,7 +67,7 @@ class BettingEngine(object):
             self.discord.send_error(
                 "Error instantiating OddsPortal instance: " + str(e))
             raise e
-        self._alpha = 0.04
+        self._alpha = 0.05
         try:
             self.model = pickle.load(open('model.pkl', 'rb'))
         except Exception as e:
