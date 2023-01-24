@@ -1,5 +1,3 @@
-import asyncio
-from requests_html import HTMLSession, AsyncHTMLSession
 import pandas as pd
 import numpy as np
 import re
@@ -174,18 +172,3 @@ class BetMGM(object):
             dfs.append(df)
         df = pd.concat(dfs)
         return df
-
-
-async def async_render():
-    session = AsyncHTMLSession()
-    res = await session.get("https://sports.il.betmgm.com/en/sports/basketball-7/betting/usa-9/nba-6004")
-    await res.html.arender(timeout=10000)
-    return res.html.raw_html
-
-
-def render():
-    session = HTMLSession()
-    res = session.get(
-        "https://sports.il.betmgm.com/en/sports/basketball-7/betting/usa-9/nba-6004")
-    res.html.render(timeout=10000)
-    return res.html.content
