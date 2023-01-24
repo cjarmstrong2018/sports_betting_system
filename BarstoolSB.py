@@ -47,7 +47,7 @@ class Barstool(object):
             try:
                 home_team, away_team = event_name.split(' - ')
             except:
-                print(event_info)
+                continue
             away_team = away_team.strip()
             home_team = home_team.strip()
             date = event_info.get('start')
@@ -56,8 +56,11 @@ class Barstool(object):
             date = date.astimezone(tz)
             date = date.replace(tzinfo=None)
             lines = event.get("betOffers")
-            lines = [x for x in lines if x['criterion'].get(
-                'label') in ["Moneyline", "Full Time", 'Moneyline - Inc. OT and Shootout']][0]
+            try:
+                lines = [x for x in lines if x['criterion'].get(
+                    'label') in ["Moneyline", "Full Time", 'Moneyline - Inc. OT and Shootout']][0]
+            except IndexError:
+                continue
             lines = lines.get("outcomes")
             for line in lines:
                 odds_team = line.get("englishLabel")
