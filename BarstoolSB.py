@@ -4,6 +4,7 @@ import json
 from dateutil import parser
 import pytz
 from pybettor import convert_odds
+from utils import central_time_now
 
 
 class Barstool(object):
@@ -47,7 +48,7 @@ class Barstool(object):
             try:
                 home_team, away_team = event_name.split(' - ')
             except:
-                print(event_info)
+                continue
             away_team = away_team.strip()
             home_team = home_team.strip()
             date = event_info.get('start')
@@ -55,9 +56,14 @@ class Barstool(object):
             tz = pytz.timezone('US/Central')
             date = date.astimezone(tz)
             date = date.replace(tzinfo=None)
+            if date < central_time_now():
+                continue
             lines = event.get("betOffers")
-            lines = [x for x in lines if x['criterion'].get(
-                'label') in ["Moneyline", "Full Time", 'Moneyline - Inc. OT and Shootout']][0]
+            try:
+                lines = [x for x in lines if x['criterion'].get(
+                    'label') in ["Moneyline", "Full Time", 'Moneyline - Inc. OT and Shootout']][0]
+            except IndexError:
+                continue
             lines = lines.get("outcomes")
             for line in lines:
                 odds_team = line.get("englishLabel")

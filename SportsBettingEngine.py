@@ -8,6 +8,7 @@ from BarstoolSB import Barstool
 from PointsBet import PointsBet
 from Caesars import Caesars
 from FanDuel import FanDuel
+from BetMGM import BetMGM
 import fuzzy_pandas as fpd
 import os
 from dotenv import load_dotenv
@@ -58,7 +59,7 @@ class BettingEngine(object):
         self.initial_bankroll = 500
         self.discord = DiscordAlert()
         self.books = [DraftKings(), Barstool(), PointsBet(),
-                      Caesars(), BetRivers(), FanDuel()]
+                      Caesars(), BetRivers(), FanDuel(), BetMGM()]
         self.valid_lines = 0
         try:
             self.odds_portal = OddsPortal()
@@ -401,3 +402,6 @@ class BettingEngine(object):
         self.discord.send_error(
             f"Engine completed, analyzed {self.valid_lines} lines")
         self.odds_portal.exit()
+        for scraper in self.books:
+            if scraper.name == "BetMGM":
+                scraper.web.quit()
