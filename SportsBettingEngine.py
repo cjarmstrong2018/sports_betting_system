@@ -198,10 +198,11 @@ class BettingEngine(object):
         """
         df['american_thresh'] = df['thresh'].apply(
             lambda x: convert_odds(x, cat_in="dec")['American'])
+        df['american_thresh'] = df['american_thresh'].round()
         df['american_odds_best'] = df['odds'].apply(
             lambda x: convert_odds(x, cat_in="dec")['American'])
+        df['american_odds_best'] = df['american_odds_best'].round()
 
-        # compute df['predicted_prob'] here using self.prediction_model
         implied = df['mean_implied_probability']
         implied.name = 'implied_probability'
         df['predicted_prob'] = self.model.predict(implied)
@@ -212,7 +213,7 @@ class BettingEngine(object):
 
         df['id'] = df.apply(lambda x: self.generate_game_id(x), axis=1)
         current_bankroll = self.current_bankroll()
-        df['cja_wager'] = df['half_kelly'] * current_bankroll
+        df['cja_wager'] = df['kelly'] * current_bankroll
         return df
 
     def create_and_send_notification(self, df) -> str:
@@ -264,7 +265,7 @@ class BettingEngine(object):
         """
         if df.empty:
             return
-        current_bankroll = self.current_bankroll()
+        current_bankroll = self.initial_bankroll
         intro_msg = ":rotating_light::rotating_light: Potential Bets Found! :rotating_light::rotating_light:\n"
         intro_msg += f"You current bankroll is {current_bankroll}.\n"
         self.discord.send_msg_cja(intro_msg)
@@ -281,7 +282,7 @@ class BettingEngine(object):
             msg += f"Bet on {row['odds_team']} Moneyline with {row['bookmaker']}\n"
             msg += f"Current Odds: {row['odds']} {american_best}.\n"
             msg += f"Lowest Profitable Odds: {round(row['thresh'], 2)} {american_thresh}\n"
-            msg += f"Half Kelly wager size: ${round(row['cja_wager'], 2)} \n"
+            msg += f"Kelly wager size: ${round(row['cja_wager'], 2)} \n"
             msg += "\n\n"
             self.discord.send_msg_cja(msg)
 
@@ -349,6 +350,10 @@ class BettingEngine(object):
             return df
         else:
             trades = pd.read_csv(self.trades_path, index_col='id')
+            already_sent = df[~df['id'].isin(trades.index)]
+            for row in already_sent.itterrows():
+                self.discord.send_msg_cja(
+                    f"{row['id']} is still a good bet on {row['bookmaker']} as long as odds are > {round(row['american_thresh'])}")
             return df[~df['id'].isin(trades.index)]
 
     def run_engine(self) -> None:
@@ -358,7 +363,7 @@ class BettingEngine(object):
         cleans the data, finds any relevant trades, and sends a notification on 
         Discord notifying users of the opportunities
         """
-        self.discord.send_error("Searching for Odds...")
+        # self.discord.send_error("Searching for Odds...")
         all_trades = []
         num_lines_scraped = 0
         error_occured = False
@@ -399,8 +404,8 @@ class BettingEngine(object):
             self.create_and_send_notification(df)
             self.create_and_send_notification_cja(df)
             self.save_spotted_trades(df)
-        self.discord.send_error(
-            f"Engine completed, analyzed {self.valid_lines} lines")
+        # self.discord.send_error(
+        #     f"Engine completed, analyzed {self.valid_lines} lines")
         self.odds_portal.exit()
         for scraper in self.books:
             if scraper.name == "BetMGM":
