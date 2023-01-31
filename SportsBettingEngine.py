@@ -176,7 +176,7 @@ class BettingEngine(object):
             pd.DataFrame: a DataFrame ready to be iterated over to send alerts to
             the channel
         """
-        df = df[df['date'] < datetime.now() + pd.Timedelta(5, 'h')]
+        df = df[df['date'] < central_time_now() + pd.Timedelta(3, 'h')]
         print(f"Checking {len(df)} lines within window")
         self.valid_lines += len(df)
         df['mean_implied_probability'] = 1 / df['mean_odds']
@@ -364,6 +364,8 @@ class BettingEngine(object):
         Discord notifying users of the opportunities
         """
         # self.discord.send_error("Searching for Odds...")
+        time = central_time_now()
+        print(time.strftime("%m/%d/%Y %H:%M"))
         all_trades = []
         num_lines_scraped = 0
         error_occured = False
