@@ -444,7 +444,7 @@ def get_odds_portal_driver(odds_type="AVERAGE"):
     op = webdriver.ChromeOptions()
     op.add_argument(
         "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36")
-    op.add_argument('headless')
+    # op.add_argument('headless')
     op.add_argument("--disable-web-security")
     op.add_argument("--disable-blink-features=AutomationControlled")
     op.add_argument("--log-level=3")
@@ -463,14 +463,12 @@ def get_odds_portal_driver(odds_type="AVERAGE"):
 
     web.get("https://www.oddsportal.com/login/")
 
-    login_xpath = '/html/body/div[1]/div/div[1]/div/main/div[2]/div[4]/div/div/form/div[4]/span/input'
+    login_xpath = '/html/body/div[1]/div/div[1]/div/main/div[2]/div[5]/div/div/form/div[4]/span/input'
     WebDriverWait(web, 10).until(
         EC.element_to_be_clickable((By.XPATH, login_xpath)))
-    user_xpath = '/html/body/div[1]/div/div[1]/div/main/div[2]/div[4]/div/div/form/div[1]/div[2]/input'
-    user = web.find_element(By.XPATH, user_xpath)
+    user = web.find_elements(By.ID, "login-username-sign")[-1]
     user.send_keys("cjarmstrong2018")
-    pswd_xpath = '/html/body/div[1]/div/div[1]/div/main/div[2]/div[4]/div/div/form/div[2]/div[2]/input'
-    pswd = web.find_element(By.XPATH, pswd_xpath)
+    pswd = web.find_elements(By.ID, "login-password-sign")[-1]
     pswd.send_keys("Cps!43950649")
 
     login = web.find_element(By.XPATH, login_xpath)
